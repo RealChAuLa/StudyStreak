@@ -8,14 +8,33 @@
 import SwiftUI
 
 struct ContentView: View {
+    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
+
     var body: some View {
         ZStack {
             AppColors.background
                 .ignoresSafeArea()
 
-            Text("StudyStreak")
-                .font(.largeTitle.bold())
-                .foregroundStyle(AppColors.text)
+            if hasCompletedOnboarding {
+                VStack(spacing: 24) {
+                    Text("StudyStreak")
+                        .font(AppTypography.largeTitle)
+                        .foregroundStyle(AppColors.text)
+
+                    #if DEBUG
+                    Button("Replay introduction") {
+                        hasCompletedOnboarding = false
+                    }
+                    .font(AppTypography.body)
+                    .foregroundStyle(AppColors.primary)
+                    .frame(minHeight: 44)
+                    #endif
+                }
+            } else {
+                OnboardingView {
+                    hasCompletedOnboarding = true
+                }
+            }
         }
     }
 }
