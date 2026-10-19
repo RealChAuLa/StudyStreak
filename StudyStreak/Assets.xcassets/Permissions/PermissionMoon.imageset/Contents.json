@@ -1,0 +1,16 @@
+{
+  "images": [
+    {
+      "filename": "PermissionMoon.svg",
+      "idiom": "universal"
+    }
+  ],
+  "properties": {
+    "template-rendering-intent": "template",
+    "preserves-vector-representation": true
+  },
+  "info": {
+    "version": 1,
+    "author": "xcode"
+  }
+}

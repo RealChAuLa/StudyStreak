@@ -2,6 +2,10 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>StudyStreak uses your location to find your study zones and show your position on the map.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>StudyStreak uses your location in the background to start a session when you enter a saved study zone and pause it when you leave.</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>GoogleSans-Regular.ttf</string>

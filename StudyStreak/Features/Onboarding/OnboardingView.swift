@@ -23,7 +23,7 @@ struct OnboardingView: View {
                     .frame(minWidth: 60, minHeight: 44)
                     .contentShape(Rectangle())
                     .buttonStyle(.plain)
-                    .accessibilityHint("Finish the introduction")
+                    .accessibilityHint("Continue to permission setup")
             }
             .padding(.horizontal, 24)
             .padding(.top, 8)
