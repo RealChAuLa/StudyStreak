@@ -1,0 +1,33 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="281" height="232" viewBox="0 0 281 232" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Map / library campus">
+<g clip-path="url(#clip0_0_37)">
+<rect width="281" height="232" rx="16" fill="#EDF1FF"/>
+<rect id="Shape / bg" width="281" height="232" fill="#F7F8FC"/>
+<rect id="Shape / surface" x="-40" width="12" height="232" transform="rotate(28 -40 0)" fill="white"/>
+<rect id="Shape / surface_2" x="47" width="12" height="232" transform="rotate(28 47 0)" fill="white"/>
+<rect id="Shape / surface_3" x="134" width="12" height="232" transform="rotate(28 134 0)" fill="white"/>
+<rect id="Shape / surface_4" x="221" width="12" height="232" transform="rotate(28 221 0)" fill="white"/>
+<rect id="Shape / surface_5" x="308" width="12" height="232" transform="rotate(28 308 0)" fill="white"/>
+<rect id="Shape / surface_6" y="-28" width="281" height="13" transform="rotate(-12 0 -28)" fill="white"/>
+<rect id="Shape / surface_7" y="44" width="281" height="13" transform="rotate(-12 0 44)" fill="white"/>
+<rect id="Shape / surface_8" y="116" width="281" height="13" transform="rotate(-12 0 116)" fill="white"/>
+<rect id="Shape / surface_9" y="188" width="281" height="13" transform="rotate(-12 0 188)" fill="white"/>
+<rect id="Shape / green" opacity="0.3" x="188.27" width="92.73" height="232" rx="20" fill="#A8E6A1"/>
+<rect id="Shape / border" x="18" y="40" width="36" height="24" rx="5" fill="#E5E7EB"/>
+<rect id="Shape / border_2" x="74" y="112" width="36" height="24" rx="5" fill="#E5E7EB"/>
+<rect id="Shape / border_3" x="130" y="40" width="36" height="24" rx="5" fill="#E5E7EB"/>
+<rect id="Shape / border_4" x="186" y="112" width="36" height="24" rx="5" fill="#E5E7EB"/>
+<rect id="Shape / border_5" x="242" y="40" width="36" height="24" rx="5" fill="#E5E7EB"/>
+<path id="Circle / primary" opacity="0.12" d="M213.75 116C213.75 156.455 180.955 189.25 140.5 189.25C100.045 189.25 67.25 156.455 67.25 116C67.25 75.5451 100.045 42.75 140.5 42.75C180.955 42.75 213.75 75.5451 213.75 116Z" fill="#3E63DD" stroke-width="1.5" stroke="#3E63DD"/>
+<circle id="Circle / primary_2" cx="140.5" cy="116" r="18" fill="#3E63DD"/>
+<g id="Symbol / building">
+<path id="Vector" d="M133 123.5H148M135.5 114.333V121M140.5 114.333V121M145.5 114.333V121M133.833 112.667H147.167L140.5 107.667L133.833 112.667Z" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" stroke="white"/>
+</g>
+</g>
+</g>
+<defs>
+<clipPath id="clip0_0_37">
+<rect width="281" height="232" rx="16" fill="white"/>
+</clipPath>
+</defs>
+</svg>

@@ -31,7 +31,10 @@ struct ContentView: View {
                 AccountSetupView()
                     .id(session.uid)
             case .home:
-                if let profile = session.profile { HomeView(username: profile.username) }
+                if let profile = session.profile {
+                    MainTabView(username: profile.username)
+                        .id(profile.uid)
+                }
             case .profileError:
                 accountRecovery
             case .notConfigured:

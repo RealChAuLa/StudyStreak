@@ -1,29 +1,44 @@
+import Foundation
 import SwiftUI
 
 struct HomeView: View {
     let username: String
-    @Environment(AppSession.self) private var session
-    @State private var errorMessage: String?
 
     var body: some View {
-        VStack(spacing: 24) {
-            Text(username)
-                .font(AppTypography.largeTitle)
-                .foregroundStyle(AppColors.text)
-                .accessibilityLabel("Your username is \(username)")
-            PrimaryButton(title: "Log out") {
-                do { try session.signOut() }
-                catch { errorMessage = AccountError.message(for: error) }
-            }
-            if let errorMessage {
-                Text(errorMessage)
+        TimelineView(.periodic(from: .now, by: 60)) { context in
+            VStack(alignment: .leading, spacing: 4) {
+                Text("\(greeting(at: context.date)),")
                     .font(AppTypography.subheadline)
-                    .foregroundStyle(AppColors.danger)
+                    .foregroundStyle(AppColors.secondary)
+                Text(username)
+                    .font(AppTypography.largeTitle)
+                    .foregroundStyle(AppColors.text)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityAddTraits(.isHeader)
             }
+            .accessibilityElement(children: .combine)
+            .padding(.horizontal, 24)
+            .padding(.top, 16)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         }
-        .padding(24)
-        .frame(maxWidth: 430)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(AppColors.background.ignoresSafeArea())
+        .toolbar(.hidden, for: .navigationBar)
     }
+
+    private func greeting(at date: Date) -> String {
+        switch Calendar.current.component(.hour, from: date) {
+        case 5..<12: "Good morning"
+        case 12..<17: "Good afternoon"
+        default: "Good evening"
+        }
+    }
+}
+
+#Preview("Home") {
+    NavigationStack { HomeView(username: "devinda.studies") }
+}
+
+#Preview("Home · Dark") {
+    NavigationStack { HomeView(username: "devinda.studies") }
+        .preferredColorScheme(.dark)
 }

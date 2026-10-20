@@ -16,14 +16,13 @@ struct GoogleAuthenticationButton: View {
 
                 Text("Continue with Google")
                     .font(AppTypography.googleButton)
-                    .foregroundStyle(AppColors.tagText)
+                    .foregroundStyle(AppColors.text)
                     .fixedSize(horizontal: false, vertical: true)
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
             .frame(maxWidth: .infinity, minHeight: 56)
-            // Google's light button keeps a white surface in either app appearance.
-            .background(.white, in: RoundedRectangle(cornerRadius: 16))
+            .background(AppColors.surface, in: RoundedRectangle(cornerRadius: 16))
             .overlay {
                 RoundedRectangle(cornerRadius: 16)
                     .strokeBorder(AppColors.border, lineWidth: 1)
