@@ -34,31 +34,12 @@ struct ContentView: View {
                     hasCompletedPermissionSetup = true
                 }
                 .transition(.opacity)
-            case .ready:
-                VStack(spacing: 24) {
-                    Text("StudyStreak")
-                        .font(AppTypography.largeTitle)
-                        .foregroundStyle(AppColors.text)
-
-                    #if DEBUG
-                    Button("Replay introduction") {
-                        hasCompletedPermissionSetup = false
-                        hasReviewedLocationPermission = false
-                        hasCompletedOnboarding = false
-                    }
-                    .font(AppTypography.body)
-                    .foregroundStyle(AppColors.primary)
-                    .frame(minHeight: 44)
-
-                    Button("Review permissions") {
-                        hasCompletedPermissionSetup = false
-                        hasReviewedLocationPermission = false
-                    }
-                    .font(AppTypography.body)
-                    .foregroundStyle(AppColors.primary)
-                    .frame(minHeight: 44)
-                    #endif
-                }
+            case .authentication:
+                AuthenticationView(onReplaySetup: {
+                    hasCompletedPermissionSetup = false
+                    hasReviewedLocationPermission = false
+                    hasCompletedOnboarding = false
+                })
                 .transition(.opacity)
             }
         }
@@ -69,14 +50,14 @@ struct ContentView: View {
         if !hasCompletedOnboarding { return .introduction }
         if !hasReviewedLocationPermission { return .location }
         if !hasCompletedPermissionSetup { return .notifications }
-        return .ready
+        return .authentication
     }
 
     private enum SetupStep: Equatable {
         case introduction
         case location
         case notifications
-        case ready
+        case authentication
     }
 }
 

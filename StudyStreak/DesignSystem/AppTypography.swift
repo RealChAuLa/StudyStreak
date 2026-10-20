@@ -7,4 +7,6 @@ enum AppTypography {
     static let body = Font.custom("GoogleSans-Regular", size: 17, relativeTo: .body)
     static let subheadline = Font.custom("GoogleSans-Regular", size: 15, relativeTo: .subheadline)
     static let caption = Font.custom("GoogleSans-Regular", size: 12, relativeTo: .caption)
+    static let googleButton = Font.custom("GoogleSans-Regular", size: 14, relativeTo: .subheadline)
+        .weight(.medium)
 }
