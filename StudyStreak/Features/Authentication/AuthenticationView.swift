@@ -26,23 +26,28 @@ struct AuthenticationView: View {
 
 #Preview("05a · Sign up") {
     AuthenticationView()
+        .environment(AppSession())
 }
 
 #Preview("05b · Sign in") {
     AuthenticationView(initialMode: .signIn)
+        .environment(AppSession())
 }
 
 #Preview("Sign up · Dark") {
     AuthenticationView()
+        .environment(AppSession())
         .preferredColorScheme(.dark)
 }
 
 #Preview("Sign in · Dark") {
     AuthenticationView(initialMode: .signIn)
+        .environment(AppSession())
         .preferredColorScheme(.dark)
 }
 
 #Preview("Authentication · Large text") {
     AuthenticationView()
+        .environment(AppSession())
         .environment(\.dynamicTypeSize, .accessibility3)
 }

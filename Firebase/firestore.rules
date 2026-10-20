@@ -1,0 +1,54 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function owns(uid) { return signedIn() && request.auth.uid == uid; }
+    function validName(name) {
+      return name is string && name.matches('^[a-z0-9._]{3,20}$');
+    }
+    function validProfile(uid) {
+      let data = request.resource.data;
+      return data.keys().hasAll(['uid', 'username', 'setupCompleted', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['uid', 'username', 'setupCompleted', 'createdAt', 'updatedAt', 'photoBase64'])
+        && data.uid == uid
+        && validName(data.username)
+        && data.setupCompleted is bool
+        && data.createdAt is timestamp
+        && data.updatedAt == request.time
+        && (!('photoBase64' in data) || (data.photoBase64 is string
+          && data.photoBase64.size() <= 204800
+          && data.photoBase64.matches('^[A-Za-z0-9+/]*={0,2}$')))
+        && getAfter(/databases/$(database)/documents/usernames/$(data.username)).data.uid == uid;
+    }
+
+    match /users/{uid} {
+      allow get: if owns(uid);
+      allow list, delete: if false;
+      allow create: if owns(uid) && validProfile(uid)
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.setupCompleted == false;
+      allow update: if owns(uid) && validProfile(uid)
+        && request.resource.data.createdAt == resource.data.createdAt
+        && (!resource.data.setupCompleted || request.resource.data.setupCompleted)
+        && (request.resource.data.username == resource.data.username
+          || (!resource.data.setupCompleted
+            && !existsAfter(/databases/$(database)/documents/usernames/$(resource.data.username))));
+    }
+
+    // Exact lookups support availability checks; collection enumeration is denied.
+    match /usernames/{name} {
+      allow get: if signedIn();
+      allow list, update: if false;
+      allow create: if signedIn() && validName(name)
+        && request.resource.data.keys().hasAll(['uid', 'createdAt'])
+        && request.resource.data.keys().hasOnly(['uid', 'createdAt'])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.createdAt == request.time
+        && getAfter(/databases/$(database)/documents/users/$(request.auth.uid)).data.username == name;
+      allow delete: if signedIn() && resource.data.uid == request.auth.uid
+        && getAfter(/databases/$(database)/documents/users/$(request.auth.uid)).data.username != name;
+    }
+
+    match /{document=**} { allow read, write: if false; }
+  }
+}

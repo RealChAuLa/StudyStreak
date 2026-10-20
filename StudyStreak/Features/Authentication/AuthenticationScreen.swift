@@ -7,11 +7,13 @@ struct AuthenticationScreen: View {
     let onReplaySetup: (() -> Void)?
     let onSwitch: () -> Void
 
+    @Environment(AppSession.self) private var session
     @State private var email = ""
     @State private var password = ""
     @State private var isPasswordVisible = false
     @State private var hasSubmitted = false
-    @State private var previewAction: PreviewAction?
+    @State private var isSubmitting = false
+    @State private var alert: AuthenticationAlert?
     @FocusState private var focusedField: Field?
     @ScaledMetric(relativeTo: .largeTitle) private var titleHeight: CGFloat = 82
     @ScaledMetric(relativeTo: .subheadline) private var messageHeight: CGFloat = 42
@@ -26,7 +28,7 @@ struct AuthenticationScreen: View {
                     passwordField
                 }
 
-                PrimaryButton(title: mode.buttonTitle, action: submit)
+                PrimaryButton(title: isSubmitting ? "Please wait…" : mode.buttonTitle, action: submit)
 
                 HStack(spacing: 16) {
                     Rectangle().fill(AppColors.border).frame(height: 1)
@@ -38,10 +40,7 @@ struct AuthenticationScreen: View {
                 }
                 .accessibilityHidden(true)
 
-                GoogleAuthenticationButton {
-                    focusedField = nil
-                    previewAction = .google
-                }
+                GoogleAuthenticationButton(action: signInWithGoogle)
 
                 switchButton
             }
@@ -50,12 +49,13 @@ struct AuthenticationScreen: View {
             .padding(.top, 40)
             .padding(.bottom, 24)
             .frame(maxWidth: .infinity)
+            .disabled(isSubmitting)
         }
         .scrollIndicators(.hidden)
         .scrollBounceBehavior(.basedOnSize)
         .scrollDismissesKeyboard(.interactively)
         .background(AppColors.background.ignoresSafeArea())
-        .alert(item: $previewAction) { action in
+        .alert(item: $alert) { action in
             Alert(
                 title: Text(action.title),
                 message: Text(action.message),
@@ -135,10 +135,7 @@ struct AuthenticationScreen: View {
                 Spacer()
 
                 if mode == .signIn {
-                    Button("Forgot password?") {
-                        focusedField = nil
-                        previewAction = .passwordReset
-                    }
+                    Button("Forgot password?", action: resetPassword)
                     .font(AppTypography.subheadline)
                     .foregroundStyle(AppColors.primary)
                     .frame(minHeight: 44)
@@ -246,6 +243,7 @@ struct AuthenticationScreen: View {
     }
 
     private func submit() {
+        guard !isSubmitting else { return }
         hasSubmitted = true
         email = email.trimmingCharacters(in: .whitespacesAndNewlines)
 
@@ -255,7 +253,43 @@ struct AuthenticationScreen: View {
             focusedField = .password
         } else {
             focusedField = nil
-            previewAction = mode == .signUp ? .createAccount : .signIn
+            isSubmitting = true
+            Task {
+                defer { isSubmitting = false }
+                do { try await session.authenticate(email: email, password: password, mode: mode) }
+                catch { alert = AuthenticationAlert(title: "Couldn’t continue", message: AccountError.message(for: error)) }
+            }
+        }
+    }
+
+    private func signInWithGoogle() {
+        guard !isSubmitting else { return }
+        focusedField = nil
+        isSubmitting = true
+        Task {
+            defer { isSubmitting = false }
+            do { try await session.signInWithGoogle() }
+            catch is CancellationError { }
+            catch { alert = AuthenticationAlert(title: "Couldn’t sign in", message: AccountError.message(for: error)) }
+        }
+    }
+
+    private func resetPassword() {
+        guard !isSubmitting else { return }
+        email = email.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard emailValidationError == nil else {
+            alert = AuthenticationAlert(title: "Enter your email", message: "Enter your account’s email address first, then tap Forgot password again.")
+            focusedField = .email
+            return
+        }
+        focusedField = nil
+        isSubmitting = true
+        Task {
+            defer { isSubmitting = false }
+            do {
+                try await session.resetPassword(email: email)
+                alert = AuthenticationAlert(title: "Check your inbox", message: "If an account uses this email address, you’ll receive a password reset link.")
+            } catch { alert = AuthenticationAlert(title: "Couldn’t send reset email", message: AccountError.message(for: error)) }
         }
     }
 
@@ -264,26 +298,9 @@ struct AuthenticationScreen: View {
         case password
     }
 
-    private enum PreviewAction: String, Identifiable {
-        case createAccount, signIn, google, passwordReset
-        var id: String { rawValue }
-
-        var title: String {
-            switch self {
-            case .createAccount: "Account creation preview"
-            case .signIn: "Sign-in preview"
-            case .google: "Google sign-in preview"
-            case .passwordReset: "Password reset preview"
-            }
-        }
-
-        var message: String {
-            switch self {
-            case .createAccount: "Account creation is not connected yet. No account has been created."
-            case .signIn: "Sign-in is not connected yet. This screen is a preview."
-            case .google: "Google sign-in is not connected yet. This screen is a preview."
-            case .passwordReset: "Password reset is not connected yet. No reset email has been sent."
-            }
-        }
+    private struct AuthenticationAlert: Identifiable {
+        let id = UUID()
+        let title: String
+        let message: String
     }
 }

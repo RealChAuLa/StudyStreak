@@ -12,5 +12,18 @@
 		<string>GoogleSans-SemiBold.ttf</string>
 		<string>GoogleSans-Bold.ttf</string>
 	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>StudyStreak uses the camera only when you choose to take a profile photo.</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.780068511637-nkbe7ottsqmaqp7qbh8tpc5td26f4hrb</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>

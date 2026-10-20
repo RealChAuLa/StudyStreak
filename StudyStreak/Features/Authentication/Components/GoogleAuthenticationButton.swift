@@ -2,6 +2,7 @@ import SwiftUI
 
 struct GoogleAuthenticationButton: View {
     let action: () -> Void
+    @Environment(\.isEnabled) private var isEnabled
 
     var body: some View {
         Button(action: action) {
@@ -29,6 +30,7 @@ struct GoogleAuthenticationButton: View {
             }
             .contentShape(RoundedRectangle(cornerRadius: 16))
         }
+        .opacity(isEnabled ? 1 : 0.5)
         .buttonStyle(.plain)
         .accessibilityLabel("Continue with Google")
     }
