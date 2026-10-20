@@ -38,7 +38,7 @@ struct ContentView: View {
             case .profileError:
                 accountRecovery
             case .notConfigured:
-                ContentUnavailableView("Firebase setup needed", systemImage: "exclamationmark.triangle", description: Text("Add GoogleService-Info.plist to the app target and build again."))
+                ContentUnavailableView("Unable to Start StudyStreak", systemImage: "exclamationmark.triangle", description: Text("something went wrong, please try again"))
             }
         }
         .foregroundStyle(AppColors.text)

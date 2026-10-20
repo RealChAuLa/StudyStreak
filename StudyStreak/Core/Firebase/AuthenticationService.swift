@@ -35,7 +35,7 @@ final class AuthenticationService {
             result = try await GIDSignIn.sharedInstance.signIn(withPresenting: presenter)
         } catch {
             let nsError = error as NSError
-            if nsError.domain == kGIDSignInErrorDomain && nsError.code == GIDSignInErrorCode.canceled.rawValue {
+            if nsError.domain == kGIDSignInErrorDomain && nsError.code == GIDSignInError.Code.canceled.rawValue {
                 throw CancellationError()
             }
             throw error
