@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct ZonesView: View {
+    @State private var isShowingZoneEditor = false
+
     var body: some View {
         GeometryReader { geometry in
             ScrollView {
@@ -30,7 +32,7 @@ struct ZonesView: View {
                     .padding(.top, 40)
 
                     PrimaryButton(title: "Add your first study zone") {
-                        // TODO: Present the zone editor when zone creation is implemented.
+                        isShowingZoneEditor = true
                     }
                     .padding(.top, 48)
 
@@ -55,6 +57,9 @@ struct ZonesView: View {
         .navigationBarTitleDisplayMode(.large)
         .toolbarBackground(AppColors.background, for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
+        .navigationDestination(isPresented: $isShowingZoneEditor) {
+            ZoneEditorView()
+        }
     }
 }
 

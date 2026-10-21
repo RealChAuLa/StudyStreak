@@ -3,6 +3,16 @@
     {
       "filename": "ZonesEmptyMap.svg",
       "idiom": "universal"
+    },
+    {
+      "appearances": [
+        {
+          "appearance": "luminosity",
+          "value": "dark"
+        }
+      ],
+      "filename": "ZonesEmptyMap-dark.pdf",
+      "idiom": "universal"
     }
   ],
   "info": {
