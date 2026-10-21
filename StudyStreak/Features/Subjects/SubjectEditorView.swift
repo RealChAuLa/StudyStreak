@@ -11,6 +11,7 @@ struct SubjectEditorView: View {
     @State private var name: String
     @State private var color: SubjectColor
     @State private var icon: SubjectIcon
+    @State private var isActive: Bool
     @State private var errorMessage: String?
     @FocusState private var isNameFocused: Bool
 
@@ -22,6 +23,7 @@ struct SubjectEditorView: View {
         _name = State(initialValue: subject?.name ?? "")
         _color = State(initialValue: subject?.subjectColor ?? .blue)
         _icon = State(initialValue: subject?.subjectIcon ?? .book)
+        _isActive = State(initialValue: subject?.isActive ?? true)
     }
 
     private var trimmedName: String { name.trimmingCharacters(in: .whitespacesAndNewlines) }
@@ -66,6 +68,7 @@ struct SubjectEditorView: View {
     private var subjectForm: some View {
         Form {
             nameSection
+            activitySection
             colorSection
             iconSection
         }
@@ -115,6 +118,20 @@ struct SubjectEditorView: View {
             .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
             .listRowBackground(Color.clear)
         } header: { fieldLabel("Color · swipe for more") }
+    }
+
+    private var activitySection: some View {
+        Section {
+            Toggle("Currently studying", isOn: $isActive)
+                .font(AppTypography.body)
+                .foregroundStyle(AppColors.text)
+                .tint(AppColors.success)
+                .listRowBackground(AppColors.surface)
+        } footer: {
+            Text("Only active subjects appear when choosing a zone’s default subject.")
+                .font(AppTypography.caption)
+                .foregroundStyle(AppColors.secondary)
+        }
     }
 
     private func colorButton(_ option: SubjectColor) -> some View {
@@ -183,7 +200,7 @@ struct SubjectEditorView: View {
         guard canSave else { return }
         isNameFocused = false
         do {
-            let saved = try SubjectStore.save(name: name, color: color, icon: icon, ownerID: ownerID,
+            let saved = try SubjectStore.save(name: name, color: color, icon: icon, isActive: isActive, ownerID: ownerID,
                                                editing: subject, in: modelContext)
             onSaved(saved)
             dismiss()

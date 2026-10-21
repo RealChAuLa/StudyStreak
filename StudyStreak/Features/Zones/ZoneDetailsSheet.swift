@@ -14,7 +14,7 @@ struct ZoneDetailsSheet: View {
         _draft = draft
         self.ownerID = ownerID
         self.onSave = onSave
-        _subjects = Query(filter: #Predicate<StudySubject> { $0.ownerID == ownerID },
+        _subjects = Query(filter: #Predicate<StudySubject> { $0.ownerID == ownerID && $0.isActive },
                           sort: [SortDescriptor(\StudySubject.sortIndex), SortDescriptor(\StudySubject.createdAt)])
     }
 
@@ -28,12 +28,18 @@ struct ZoneDetailsSheet: View {
                     nameField
                     iconPicker
                     subjectPicker
+                    if subjects.isEmpty {
+                        Text("No active subjects. Turn on Currently studying in Profile → Subjects, or add a new subject.")
+                            .font(AppTypography.caption)
+                            .foregroundStyle(AppColors.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                 }
                 PrimaryButton(title: "Save Zone") {
                     isNameFocused = false
                     onSave()
                 }
-                .disabled(!draft.canSave)
+                .disabled(!draft.canSave || selectedSubject == nil)
             }
             .padding(.horizontal, 24)
             .padding(.top, 32)
@@ -62,7 +68,9 @@ struct ZoneDetailsSheet: View {
             .presentationDragIndicator(.visible)
         }
         .sheet(isPresented: $isAddingSubject) {
-            SubjectEditorView(ownerID: ownerID) { saved in draft.subjectID = saved.id }
+            SubjectEditorView(ownerID: ownerID) { saved in
+                if saved.isActive { draft.subjectID = saved.id }
+            }
                 .presentationDetents([.height(590), .large])
                 .presentationDragIndicator(.visible)
         }
