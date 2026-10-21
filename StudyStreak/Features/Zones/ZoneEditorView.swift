@@ -1,6 +1,7 @@
 import CoreLocation
 import Foundation
 import MapKit
+import SwiftData
 import SwiftUI
 import UIKit
 
@@ -17,6 +18,7 @@ struct ZoneEditorView: View {
     @State private var keyboardTop: CGFloat?
     @FocusState private var isSearchFocused: Bool
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.studyUserID) private var ownerID
 
     init(draft: ZoneEditorDraft = ZoneEditorDraft(), isEditing: Bool = false) {
         self.isEditing = isEditing
@@ -76,7 +78,7 @@ struct ZoneEditorView: View {
             if !active { pinDrag = nil }
         }
         .sheet(isPresented: $isShowingDetails) {
-            ZoneDetailsSheet(draft: $draft) {
+            ZoneDetailsSheet(draft: $draft, ownerID: ownerID) {
                 // TODO: Save the draft with SwiftData in the next milestone.
             }
             .presentationDetents([.height(detailsHeight), .large])
@@ -284,22 +286,32 @@ struct ZoneEditorView: View {
 
 #Preview("34 · Add study zone") {
     NavigationStack { ZoneEditorView() }.tint(AppColors.primary)
+        .environment(\.studyUserID, "preview")
+        .modelContainer(for: StudySubject.self, inMemory: true)
 }
 
 #Preview("19 · Edit study zone") {
     NavigationStack {
         ZoneEditorView(draft: ZoneEditorDraft(name: "Library"), isEditing: true)
     }.tint(AppColors.primary)
+        .environment(\.studyUserID, "preview")
+        .modelContainer(for: StudySubject.self, inMemory: true)
 }
 
 #Preview("Add study zone · Dark") {
     NavigationStack { ZoneEditorView() }.tint(AppColors.primary).preferredColorScheme(.dark)
+        .environment(\.studyUserID, "preview")
+        .modelContainer(for: StudySubject.self, inMemory: true)
 }
 
 #Preview("Zone editor · SE size", traits: .fixedLayout(width: 375, height: 667)) {
     NavigationStack { ZoneEditorView() }.tint(AppColors.primary)
+        .environment(\.studyUserID, "preview")
+        .modelContainer(for: StudySubject.self, inMemory: true)
 }
 
 #Preview("Zone editor · 17 Pro size", traits: .fixedLayout(width: 402, height: 874)) {
     NavigationStack { ZoneEditorView() }.tint(AppColors.primary).preferredColorScheme(.dark)
+        .environment(\.studyUserID, "preview")
+        .modelContainer(for: StudySubject.self, inMemory: true)
 }

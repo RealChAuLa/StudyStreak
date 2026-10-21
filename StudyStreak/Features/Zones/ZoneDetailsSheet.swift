@@ -1,10 +1,24 @@
+import SwiftData
 import SwiftUI
 
 struct ZoneDetailsSheet: View {
     @Binding var draft: ZoneEditorDraft
+    let ownerID: String
     let onSave: () -> Void
+    @Query private var subjects: [StudySubject]
     @State private var isShowingCustomIcons = false
+    @State private var isAddingSubject = false
     @FocusState private var isNameFocused: Bool
+
+    init(draft: Binding<ZoneEditorDraft>, ownerID: String, onSave: @escaping () -> Void) {
+        _draft = draft
+        self.ownerID = ownerID
+        self.onSave = onSave
+        _subjects = Query(filter: #Predicate<StudySubject> { $0.ownerID == ownerID },
+                          sort: [SortDescriptor(\StudySubject.sortIndex), SortDescriptor(\StudySubject.createdAt)])
+    }
+
+    private var selectedSubject: StudySubject? { subjects.first { $0.id == draft.subjectID } }
 
     var body: some View {
         ScrollView {
@@ -29,6 +43,10 @@ struct ZoneDetailsSheet: View {
         .scrollBounceBehavior(.basedOnSize)
         .scrollDismissesKeyboard(.interactively)
         .background(AppColors.background)
+        .onChange(of: subjects.map(\.id), initial: true) { _, ids in
+            if let selected = draft.subjectID, ids.contains(selected) { return }
+            draft.subjectID = ids.first
+        }
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
                 Spacer()
@@ -42,6 +60,11 @@ struct ZoneDetailsSheet: View {
             }
             .presentationDetents([.medium])
             .presentationDragIndicator(.visible)
+        }
+        .sheet(isPresented: $isAddingSubject) {
+            SubjectEditorView(ownerID: ownerID) { saved in draft.subjectID = saved.id }
+                .presentationDetents([.height(590), .large])
+                .presentationDragIndicator(.visible)
         }
     }
 
@@ -142,11 +165,14 @@ struct ZoneDetailsSheet: View {
 
     private var subjectPicker: some View {
         Menu {
-            Picker("Default Subject", selection: $draft.subject) {
-                ForEach(ZoneSubjectOption.allCases) { subject in
-                    Text(subject.rawValue).tag(subject)
+            Picker("Default Subject", selection: $draft.subjectID) {
+                Text("Choose a subject").tag(UUID?.none)
+                ForEach(subjects) { subject in
+                    Text(subject.name).tag(Optional(subject.id))
                 }
             }
+            Button("Add Subject", systemImage: "plus") { isAddingSubject = true }
+                .disabled(ownerID.isEmpty)
         } label: {
             ViewThatFits(in: .horizontal) {
                 HStack(spacing: 8) {
@@ -168,7 +194,7 @@ struct ZoneDetailsSheet: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel("Default Subject")
-        .accessibilityValue(draft.subject.rawValue)
+        .accessibilityValue(selectedSubject?.name ?? "No subject selected")
     }
 
     private var subjectLabel: some View {
@@ -177,15 +203,18 @@ struct ZoneDetailsSheet: View {
 
     private var subjectChip: some View {
         HStack(spacing: 8) {
-            Image("ZoneSubject").resizable().scaledToFit().frame(width: 16, height: 16)
-            Text(draft.subject.rawValue).font(AppTypography.caption.weight(.semibold))
+            if let selectedSubject {
+                SubjectIconImage(icon: selectedSubject.subjectIcon, size: 16)
+            }
+            Text(selectedSubject?.name ?? "Choose a subject")
+                .font(AppTypography.caption.weight(.semibold))
+                .lineLimit(2)
         }
-        .foregroundStyle(AppColors.tagText)
+        .foregroundStyle(selectedSubject == nil ? AppColors.secondary : AppColors.tagText)
         .padding(.horizontal, 12)
         .padding(.vertical, 10)
         .frame(minHeight: 36)
-        .background(draft.subject.color, in: Capsule())
-        .fixedSize(horizontal: true, vertical: false)
+        .background(selectedSubject?.subjectColor.color ?? AppColors.surface, in: Capsule())
     }
 
     private var downIcon: some View {

@@ -2,6 +2,7 @@ import SwiftUI
 
 struct MainTabView: View {
     let username: String
+    let userID: String
 
     var body: some View {
         TabView {
@@ -26,5 +27,6 @@ struct MainTabView: View {
             }
         }
         .tint(AppColors.primary)
+        .environment(\.studyUserID, userID)
     }
 }

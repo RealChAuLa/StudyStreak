@@ -1,3 +1,4 @@
+import SwiftData
 import SwiftUI
 
 struct ProfileView: View {
@@ -23,6 +24,7 @@ struct ProfileView: View {
 private struct ProfileContent: View {
     let profile: UserProfile?
     let onSignOut: () -> Void
+    @Environment(\.studyUserID) private var ownerID
 
     var body: some View {
         ScrollView {
@@ -46,7 +48,12 @@ private struct ProfileContent: View {
                     }
                     .buttonStyle(.plain)
                     Divider().overlay(AppColors.border)
-                    unavailableRow("Subjects", icon: "ProfileBook")
+                    NavigationLink {
+                        SubjectsView(ownerID: ownerID)
+                    } label: {
+                        settingsRow("Subjects", icon: "ProfileBook")
+                    }
+                    .buttonStyle(.plain)
                     Divider().overlay(AppColors.border)
                     Toggle("Leaderboard visibility", isOn: .constant(false))
                         .font(AppTypography.body)
@@ -98,6 +105,7 @@ private struct ProfileContent: View {
         .background(AppColors.background.ignoresSafeArea())
         .navigationTitle("Profile")
         .navigationBarTitleDisplayMode(.large)
+        .toolbar(.visible, for: .navigationBar)
         .toolbarBackground(AppColors.background, for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
     }
@@ -206,6 +214,8 @@ private extension View {
         ProfileContent(profile: UserProfile(uid: "preview", username: "devinda.studies", photoBase64: nil, setupCompleted: true), onSignOut: {})
     }
     .tint(AppColors.primary)
+    .environment(\.studyUserID, "preview")
+    .modelContainer(for: StudySubject.self, inMemory: true)
 }
 
 #Preview("Profile · Dark") {
@@ -213,6 +223,8 @@ private extension View {
         ProfileContent(profile: UserProfile(uid: "preview", username: "devinda.studies", photoBase64: nil, setupCompleted: true), onSignOut: {})
     }
     .tint(AppColors.primary)
+    .environment(\.studyUserID, "preview")
+    .modelContainer(for: StudySubject.self, inMemory: true)
     .preferredColorScheme(.dark)
 }
 
@@ -221,4 +233,15 @@ private extension View {
         ProfileContent(profile: UserProfile(uid: "preview", username: "devinda.studies", photoBase64: nil, setupCompleted: true), onSignOut: {})
     }
     .tint(AppColors.primary)
+    .environment(\.studyUserID, "preview")
+    .modelContainer(for: StudySubject.self, inMemory: true)
+}
+
+#Preview("Profile · 17 Pro size", traits: .fixedLayout(width: 402, height: 874)) {
+    NavigationStack {
+        ProfileContent(profile: UserProfile(uid: "preview", username: "devinda.studies", photoBase64: nil, setupCompleted: true), onSignOut: {})
+    }
+    .tint(AppColors.primary)
+    .environment(\.studyUserID, "preview")
+    .modelContainer(for: StudySubject.self, inMemory: true)
 }

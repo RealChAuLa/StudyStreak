@@ -32,7 +32,7 @@ struct ContentView: View {
                     .id(session.uid)
             case .home:
                 if let profile = session.profile {
-                    MainTabView(username: profile.username)
+                    MainTabView(username: profile.username, userID: profile.uid)
                         .id(profile.uid)
                 }
             case .profileError:

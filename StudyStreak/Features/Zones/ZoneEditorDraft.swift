@@ -2,7 +2,7 @@ import CoreLocation
 import Foundation
 import SwiftUI
 
-// Transient editor state. SwiftData storage is introduced in the next milestone.
+// Transient zone state; subjects are selected from the user's SwiftData records.
 struct ZoneEditorDraft {
     var name = ""
     // Initial map center, not the user's current location.
@@ -10,9 +10,9 @@ struct ZoneEditorDraft {
     var radius: CLLocationDistance = 150
     var icon: ZoneIcon = .library
     var customSymbol = "book"
-    var subject: ZoneSubjectOption = .mathematics
+    var subjectID: UUID?
 
-    var canSave: Bool { !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+    var canSave: Bool { !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && subjectID != nil }
 }
 
 enum ZoneIcon: String, CaseIterable, Identifiable {
@@ -32,22 +32,6 @@ enum ZoneIcon: String, CaseIterable, Identifiable {
         case .desk: "ZoneDesk"
         case .cafe: "ZoneCafe"
         case .custom: "ZoneAdd"
-        }
-    }
-}
-
-// Preview choices until saved subjects are available from SwiftData.
-enum ZoneSubjectOption: String, CaseIterable, Identifiable {
-    case mathematics = "Mathematics"
-    case physics = "Physics"
-    case computerScience = "Computer Science"
-
-    var id: String { rawValue }
-    var color: Color {
-        switch self {
-        case .mathematics: AppColors.Subject.blue
-        case .physics: AppColors.Subject.purple
-        case .computerScience: AppColors.Subject.teal
         }
     }
 }

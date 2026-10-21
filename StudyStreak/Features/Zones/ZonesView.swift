@@ -1,3 +1,4 @@
+import SwiftData
 import SwiftUI
 
 struct ZonesView: View {
@@ -66,10 +67,14 @@ struct ZonesView: View {
 #Preview("18 · Zones / empty") {
     NavigationStack { ZonesView() }
         .tint(AppColors.primary)
+        .environment(\.studyUserID, "preview")
+        .modelContainer(for: StudySubject.self, inMemory: true)
 }
 
 #Preview("Zones / empty · Dark") {
     NavigationStack { ZonesView() }
         .tint(AppColors.primary)
+        .environment(\.studyUserID, "preview")
+        .modelContainer(for: StudySubject.self, inMemory: true)
         .preferredColorScheme(.dark)
 }
