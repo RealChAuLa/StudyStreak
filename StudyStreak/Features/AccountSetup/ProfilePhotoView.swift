@@ -197,27 +197,6 @@ struct ProfilePhotoView: View {
     .preferredColorScheme(.dark)
 }
 
-private struct ProfileAvatar: View {
-    let initial: String
-    let photoData: Data?
-
-    var body: some View {
-        ZStack {
-            Circle().fill(AppColors.tint)
-            if let photoData, let image = UIImage(data: photoData) {
-                Image(uiImage: image).resizable().scaledToFill()
-            } else {
-                Text(initial)
-                    .font(.custom("GoogleSans-SemiBold", size: 52, relativeTo: .largeTitle))
-                    .foregroundStyle(AppColors.primary)
-            }
-        }
-        .frame(width: 144, height: 144)
-        .clipShape(Circle())
-        .accessibilityHidden(true)
-    }
-}
-
 private struct PhotoActionButton: View {
     let title: String
     let isTinted: Bool
