@@ -101,13 +101,22 @@ private struct ProfileContent: View {
             .padding(.top, 8)
             .padding(.bottom, 24)
         }
+        .scrollIndicators(.hidden)
         .scrollBounceBehavior(.basedOnSize)
         .background(AppColors.background.ignoresSafeArea())
         .navigationTitle("Profile")
         .navigationBarTitleDisplayMode(.large)
         .toolbar(.visible, for: .navigationBar)
-        .toolbarBackground(AppColors.background, for: .navigationBar)
-        .toolbarBackground(.visible, for: .navigationBar)
+        .toolbar {
+            if #available(iOS 26.0, *) {
+                ToolbarItem(placement: .largeTitle) {
+                    Text("Profile")
+                        .font(AppTypography.largeTitle)
+                        .foregroundStyle(AppColors.text)
+                        .accessibilityAddTraits(.isHeader)
+                }
+            }
+        }
     }
 
     private var identityCard: some View {

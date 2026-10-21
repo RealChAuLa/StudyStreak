@@ -32,117 +32,145 @@ struct SubjectEditorView: View {
 
     var body: some View {
         NavigationStack {
-            Form {
-                Section {
-                    HStack(spacing: 12) {
-                        TextField("e.g. Design Studies", text: $name)
-                            .font(AppTypography.body)
-                            .foregroundStyle(AppColors.text)
-                            .textInputAutocapitalization(.words)
-                            .submitLabel(.done)
-                            .focused($isNameFocused)
-                            .onSubmit { isNameFocused = false }
-                            .accessibilityLabel("Subject name")
-                        Image("SubjectNamePen").resizable().scaledToFit().frame(width: 20, height: 20)
-                            .foregroundStyle(AppColors.secondary)
-                            .accessibilityHidden(true)
+            subjectForm
+                .scrollIndicators(.hidden, axes: .vertical)
+                .scrollDismissesKeyboard(.interactively)
+                .scrollContentBackground(.hidden)
+                .background(AppColors.background.ignoresSafeArea())
+                .navigationTitle(subject == nil ? "Add a subject" : "Edit subject")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Cancel", systemImage: "xmark") { dismiss() }.labelStyle(.iconOnly)
                     }
-                    .frame(minHeight: 44)
-                    .listRowBackground(AppColors.surface)
-                } header: {
-                    fieldLabel("Subject name")
-                } footer: {
-                    if isDuplicate {
-                        Text("You already have a subject with this name.").foregroundStyle(AppColors.danger)
-                    } else if trimmedName.count > 40 {
-                        Text("Use 40 characters or fewer.").foregroundStyle(AppColors.danger)
+                    ToolbarItemGroup(placement: .keyboard) {
+                        Spacer()
+                        Button("Done") { isNameFocused = false }
                     }
                 }
-
-                Section {
-                    ScrollView(.horizontal) {
-                        HStack(spacing: 8) {
-                            ForEach(SubjectColor.allCases) { option in
-                                Button { color = option } label: {
-                                    Circle().fill(option.color)
-                                        .frame(width: 36, height: 36)
-                                        .overlay {
-                                            if option == color {
-                                                Image(systemName: "checkmark")
-                                                    .font(.system(size: 15, weight: .semibold))
-                                                    .foregroundStyle(AppColors.tagText)
-                                            }
-                                        }
-                                        .frame(width: 44, height: 44)
-                                        .contentShape(Rectangle())
-                                }
-                                .buttonStyle(.plain)
-                                .accessibilityLabel(option.title)
-                                .accessibilityAddTraits(option == color ? .isSelected : [])
-                            }
-                        }
-                    }
-                    .scrollIndicators(.visible)
-                    .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
-                    .listRowBackground(Color.clear)
-                } header: { fieldLabel("Color · swipe for more") }
-
-                Section {
-                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 52))], spacing: 12) {
-                        ForEach(SubjectIcon.allCases) { option in
-                            Button { icon = option } label: {
-                                SubjectIconImage(icon: option)
-                                    .foregroundStyle(AppColors.primary)
-                                    .frame(maxWidth: .infinity, minHeight: 48)
-                                    .background(icon == option ? AppColors.tint : AppColors.surface,
-                                                in: RoundedRectangle(cornerRadius: 12))
-                                    .overlay {
-                                        if icon == option {
-                                            RoundedRectangle(cornerRadius: 12).stroke(AppColors.primary, lineWidth: 1)
-                                        }
-                                    }
-                                    .contentShape(RoundedRectangle(cornerRadius: 12))
-                            }
-                            .buttonStyle(.plain)
-                            .accessibilityLabel(option.title)
-                            .accessibilityAddTraits(option == icon ? .isSelected : [])
-                        }
-                    }
-                    .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
-                    .listRowBackground(Color.clear)
-                } header: { fieldLabel("Icon") }
-
-                if let errorMessage {
-                    Text(errorMessage)
-                        .font(AppTypography.subheadline)
-                        .foregroundStyle(AppColors.danger)
-                        .listRowBackground(Color.clear)
-                        .accessibilityLiveRegion(.polite)
+                .safeAreaInset(edge: .bottom) {
+                    saveButton
                 }
-            }
-            .scrollDismissesKeyboard(.interactively)
-            .scrollContentBackground(.hidden)
-            .background(AppColors.background.ignoresSafeArea())
-            .navigationTitle(subject == nil ? "Add a subject" : "Edit subject")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel", systemImage: "xmark") { dismiss() }.labelStyle(.iconOnly)
-                }
-                ToolbarItemGroup(placement: .keyboard) {
-                    Spacer()
-                    Button("Done") { isNameFocused = false }
-                }
-            }
-            .safeAreaInset(edge: .bottom) {
-                PrimaryButton(title: "Save Subject", action: save)
-                    .disabled(!canSave)
-                    .padding(.horizontal, 24)
-                    .padding(.vertical, 16)
-                    .background(AppColors.background)
-            }
         }
         .tint(AppColors.primary)
+        .alert("Couldn’t save subject", isPresented: Binding(
+            get: { errorMessage != nil },
+            set: { if !$0 { errorMessage = nil } }
+        )) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(errorMessage ?? "Please try again.")
+        }
+    }
+
+    private var subjectForm: some View {
+        Form {
+            nameSection
+            colorSection
+            iconSection
+        }
+    }
+
+    private var nameSection: some View {
+        Section {
+            HStack(spacing: 12) {
+                TextField("e.g. Design Studies", text: $name)
+                    .font(AppTypography.body)
+                    .foregroundStyle(AppColors.text)
+                    .textInputAutocapitalization(.words)
+                    .submitLabel(.done)
+                    .focused($isNameFocused)
+                    .onSubmit { isNameFocused = false }
+                    .accessibilityLabel("Subject name")
+                Image("SubjectNamePen").resizable().scaledToFit().frame(width: 20, height: 20)
+                    .foregroundStyle(AppColors.secondary)
+                    .accessibilityHidden(true)
+            }
+            .frame(minHeight: 44)
+            .listRowBackground(AppColors.surface)
+        } header: {
+            fieldLabel("Subject name")
+        } footer: {
+            nameValidation
+        }
+    }
+
+    @ViewBuilder
+    private var nameValidation: some View {
+        if isDuplicate {
+            Text("You already have a subject with this name.").foregroundStyle(AppColors.danger)
+        } else if trimmedName.count > 40 {
+            Text("Use 40 characters or fewer.").foregroundStyle(AppColors.danger)
+        }
+    }
+
+    private var colorSection: some View {
+        Section {
+            ScrollView(.horizontal) {
+                HStack(spacing: 8) {
+                    ForEach(SubjectColor.allCases) { option in colorButton(option) }
+                }
+            }
+            .scrollIndicators(.visible, axes: .horizontal)
+            .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
+            .listRowBackground(Color.clear)
+        } header: { fieldLabel("Color · swipe for more") }
+    }
+
+    private func colorButton(_ option: SubjectColor) -> some View {
+        Button { color = option } label: {
+            Circle().fill(option.color)
+                .frame(width: 36, height: 36)
+                .overlay {
+                    if option == color {
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundStyle(AppColors.tagText)
+                    }
+                }
+                .frame(width: 44, height: 44)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(option.title)
+        .accessibilityAddTraits(option == color ? .isSelected : [])
+    }
+
+    private var iconSection: some View {
+        Section {
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 52))], spacing: 12) {
+                ForEach(SubjectIcon.allCases) { option in iconButton(option) }
+            }
+            .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
+            .listRowBackground(Color.clear)
+        } header: { fieldLabel("Icon") }
+    }
+
+    private func iconButton(_ option: SubjectIcon) -> some View {
+        Button { icon = option } label: {
+            SubjectIconImage(icon: option)
+                .foregroundStyle(AppColors.primary)
+                .frame(maxWidth: .infinity, minHeight: 48)
+                .background(icon == option ? AppColors.tint : AppColors.surface,
+                            in: RoundedRectangle(cornerRadius: 12))
+                .overlay {
+                    if icon == option {
+                        RoundedRectangle(cornerRadius: 12).stroke(AppColors.primary, lineWidth: 1)
+                    }
+                }
+                .contentShape(RoundedRectangle(cornerRadius: 12))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(option.title)
+        .accessibilityAddTraits(option == icon ? .isSelected : [])
+    }
+
+    private var saveButton: some View {
+        PrimaryButton(title: "Save Subject", action: save)
+            .disabled(!canSave)
+            .padding(.horizontal, 24)
+            .padding(.vertical, 16)
+            .background(AppColors.background)
     }
 
     private func fieldLabel(_ title: String) -> some View {

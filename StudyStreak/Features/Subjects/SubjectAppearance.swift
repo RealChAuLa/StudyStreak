@@ -24,12 +24,14 @@ enum SubjectColor: String, CaseIterable, Identifiable {
 enum SubjectIcon: String, CaseIterable, Identifiable {
     case book, pen, atom, code, leaf, sparkles, building, chart
     case flask, globe, music, palette, microscope
+    case calculator, scales
 
     var id: String { rawValue }
     var title: String {
         switch self {
         case .code: "Computer science"
         case .chart: "Economics"
+        case .scales: "Law"
         default: rawValue.capitalized
         }
     }
