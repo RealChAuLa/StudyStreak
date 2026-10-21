@@ -10,6 +10,7 @@ nonisolated enum AccountError: LocalizedError {
     case signedOut
     case usernameTaken
     case invalidUsername
+    case invalidDisplayName
     case incompleteProfile
 
     var errorDescription: String? {
@@ -22,6 +23,7 @@ nonisolated enum AccountError: LocalizedError {
         case .signedOut: "Please sign in again to continue."
         case .usernameTaken: "That username was just taken. Please choose another."
         case .invalidUsername: "Use 3–20 letters, numbers, dots or underscores."
+        case .invalidDisplayName: "Use a display name with 50 characters or fewer."
         case .incompleteProfile: "Choose a username before continuing."
         }
     }

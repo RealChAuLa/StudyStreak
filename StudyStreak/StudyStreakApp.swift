@@ -14,6 +14,7 @@ import SwiftUI
 struct StudyStreakApp: App {
     @State private var session: AppSession
     @State private var persistence = LocalPersistence()
+    @AppStorage(AppAppearance.storageKey) private var appearance = AppAppearance.system.rawValue
 
     init() {
         if FirebaseApp.app() == nil,
@@ -41,6 +42,7 @@ struct StudyStreakApp: App {
                     }
                 }
             }
+            .preferredColorScheme((AppAppearance(rawValue: appearance) ?? .system).colorScheme)
             .onOpenURL { url in
                 _ = GIDSignIn.sharedInstance.handle(url)
             }

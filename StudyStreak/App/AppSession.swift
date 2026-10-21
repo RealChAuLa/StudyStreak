@@ -83,10 +83,29 @@ final class AppSession {
         try await profiles.completeSetup(uid: userID, photoData: photoData)
         guard uid == userID else { throw AccountError.signedOut }
         profile = UserProfile(
-            uid: userID, username: current.username,
+            uid: userID, username: current.username, displayName: current.displayName,
             photoBase64: photoData?.base64EncodedString(), setupCompleted: true
         )
         phase = .home
+    }
+
+    func updateProfile(for userID: String, username: String, displayName: String, photoData: Data?) async throws {
+        guard uid == userID, let profiles else { throw AccountError.signedOut }
+        let saved = try await profiles.updateProfile(uid: userID, username: username,
+                                                     displayName: displayName, photoData: photoData)
+        guard uid == userID else { throw AccountError.signedOut }
+        profile = saved
+    }
+
+    func refreshProfile() async throws {
+        guard let userID = uid, let profiles else { throw AccountError.signedOut }
+        let previous = profile
+        guard let saved = try await profiles.fetch(uid: userID, fromServer: true) else { throw AccountError.incompleteProfile }
+        try Task.checkCancellation()
+        guard uid == userID else { throw AccountError.signedOut }
+        // A slow refresh must not replace a profile that was just saved locally.
+        guard profile == previous else { return }
+        profile = saved
     }
 
     private func loadProfile(for userID: String?) {

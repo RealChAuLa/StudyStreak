@@ -4,13 +4,32 @@ import SwiftUI
 struct ProfileView: View {
     @Environment(AppSession.self) private var session
     @State private var errorMessage: String?
+    @State private var errorTitle = "Couldn’t load profile"
+    @State private var isEditingProfile = false
 
     var body: some View {
-        ProfileContent(profile: session.profile) {
+        ProfileContent(profile: session.profile, onSignOut: {
             do { try session.signOut() }
-            catch { errorMessage = AccountError.message(for: error) }
-        }
-            .alert("Couldn’t log out", isPresented: Binding(
+            catch { errorTitle = "Couldn’t log out"; errorMessage = AccountError.message(for: error) }
+        }, onEditProfile: { isEditingProfile = true })
+            .task(id: session.uid) {
+                // Refresh photos from the server while retaining the cached profile offline.
+                guard session.uid != nil else { return }
+                try? await session.refreshProfile()
+            }
+            .refreshable {
+                do { try await session.refreshProfile() }
+                catch { errorTitle = "Couldn’t refresh profile"; errorMessage = AccountError.message(for: error) }
+            }
+            .sheet(isPresented: $isEditingProfile) {
+                if let profile = session.profile {
+                    EditProfileView(profile: profile)
+                        .presentationDetents([.height(660), .large])
+                        .presentationDragIndicator(.visible)
+                        .presentationCornerRadius(24)
+                }
+            }
+            .alert(errorTitle, isPresented: Binding(
                 get: { errorMessage != nil },
                 set: { if !$0 { errorMessage = nil } }
             )) {
@@ -24,7 +43,9 @@ struct ProfileView: View {
 private struct ProfileContent: View {
     let profile: UserProfile?
     let onSignOut: () -> Void
+    var onEditProfile: () -> Void = { }
     @Environment(\.studyUserID) private var ownerID
+    @AppStorage(AppAppearance.storageKey) private var appearance = AppAppearance.system.rawValue
 
     var body: some View {
         ScrollView {
@@ -71,9 +92,18 @@ private struct ProfileContent: View {
 
                 sectionTitle("Preferences")
                 VStack(spacing: 0) {
-                    unavailableRow("Appearance", icon: "ProfileSun", value: "System")
+                    NavigationLink {
+                        AppearanceView(displayName: profile?.displayName ?? "Your profile")
+                    } label: {
+                        settingsRow("Appearance", icon: "ProfileSun", value: (AppAppearance(rawValue: appearance) ?? .system).title)
+                    }
+                    .buttonStyle(.plain)
                     Divider().overlay(AppColors.border)
-                    unavailableRow("Edit Profile", icon: "ProfilePerson")
+                    Button(action: onEditProfile) {
+                        settingsRow("Edit Profile", icon: "ProfilePerson")
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(profile == nil)
                 }
                 .profileCard()
 
@@ -124,7 +154,7 @@ private struct ProfileContent: View {
             HStack(spacing: 16) {
                 ProfileAvatar(initial: profile?.initial ?? "?", photoData: profile?.photoData, size: 64)
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(profile?.username ?? "Your profile")
+                    Text(profile?.displayName ?? "Your profile")
                         .font(AppTypography.title2)
                         .foregroundStyle(AppColors.text)
                     if let profile {
@@ -135,18 +165,6 @@ private struct ProfileContent: View {
                 }
                 .fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                Button {
-                    // TODO: Present profile editing when that feature is implemented.
-                } label: {
-                    Image("ProfileEdit")
-                        .resizable().scaledToFit().frame(width: 22, height: 22)
-                        .foregroundStyle(AppColors.primary)
-                        .frame(width: 44, height: 44)
-                }
-                .buttonStyle(.plain)
-                .disabled(true)
-                .accessibilityLabel("Edit profile")
-                .accessibilityHint("Coming soon")
             }
             Divider().overlay(AppColors.border)
             HStack(spacing: 16) {
