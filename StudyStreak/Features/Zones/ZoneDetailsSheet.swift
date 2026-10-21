@@ -202,30 +202,33 @@ private struct CustomZoneIconPicker: View {
     private let symbols = [
         ("book", "Book"), ("graduationcap", "Graduation cap"),
         ("laptopcomputer", "Laptop"), ("house", "Home"),
-        ("pencil", "Pencil"), ("mappin", "Map pin")
+        ("pencil", "Pencil"), ("mappin", "Map pin"),
+        ("books.vertical", "Reading room"), ("building.2", "Study centre"),
+        ("sofa", "Study lounge")
     ]
 
     var body: some View {
         NavigationStack {
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 80))], spacing: 16) {
-                ForEach(symbols, id: \.0) { symbol, title in
-                    Button {
-                        onSelect(symbol)
-                        dismiss()
-                    } label: {
-                        Image(systemName: symbol)
-                            .font(.title2)
-                            .foregroundStyle(AppColors.primary)
-                            .frame(maxWidth: .infinity, minHeight: 64)
-                            .background(symbol == selection ? AppColors.tint : AppColors.surface, in: RoundedRectangle(cornerRadius: 16))
+            ScrollView {
+                LazyVGrid(columns: [GridItem(.adaptive(minimum: 80))], spacing: 16) {
+                    ForEach(symbols, id: \.0) { symbol, title in
+                        Button {
+                            onSelect(symbol)
+                            dismiss()
+                        } label: {
+                            Image(systemName: symbol)
+                                .font(.title2)
+                                .foregroundStyle(AppColors.primary)
+                                .frame(maxWidth: .infinity, minHeight: 64)
+                                .background(symbol == selection ? AppColors.tint : AppColors.surface, in: RoundedRectangle(cornerRadius: 16))
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel(title)
+                        .accessibilityAddTraits(symbol == selection ? .isSelected : [])
                     }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel(title)
-                    .accessibilityAddTraits(symbol == selection ? .isSelected : [])
                 }
+                .padding(24)
             }
-            .padding(24)
-            .frame(maxHeight: .infinity, alignment: .top)
             .background(AppColors.background.ignoresSafeArea())
             .navigationTitle("Choose an icon")
             .navigationBarTitleDisplayMode(.inline)
