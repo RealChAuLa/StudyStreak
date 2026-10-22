@@ -1,0 +1,11 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="176" height="176" viewBox="0 0 176 176" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Breathing halo" clip-path="url(#clip0_0_50)">
+<path id="Focus outline" opacity="0.14" d="M175.5 88C175.5 136.325 136.325 175.5 88 175.5C39.6751 175.5 0.5 136.325 0.5 88C0.5 39.6751 39.6751 0.5 88 0.5C136.325 0.5 175.5 39.6751 175.5 88Z" stroke="#3E63DD"/>
+<circle id="Focus glow" opacity="0.06" cx="88" cy="88" r="76" fill="#3E63DD"/>
+</g>
+<defs>
+<clipPath id="clip0_0_50">
+<rect width="176" height="176" fill="white"/>
+</clipPath>
+</defs>
+</svg>

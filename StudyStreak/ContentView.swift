@@ -22,9 +22,8 @@ struct ContentView: View {
 
             switch session.phase {
             case .loading:
-                ProgressView("Opening StudyStreak…")
-                    .font(AppTypography.body)
-                    .tint(AppColors.primary)
+                AppLoadingView()
+                    .transition(.opacity)
             case .signedOut:
                 signedOutContent
             case .accountSetup:
@@ -32,7 +31,7 @@ struct ContentView: View {
                     .id(session.uid)
             case .home:
                 if let profile = session.profile {
-                    MainTabView(username: profile.username, userID: profile.uid)
+                    MainTabView(displayName: profile.displayName, userID: profile.uid)
                         .id(profile.uid)
                 }
             case .profileError:
@@ -42,6 +41,7 @@ struct ContentView: View {
             }
         }
         .foregroundStyle(AppColors.text)
+        .animation(reduceMotion ? nil : .easeOut(duration: 0.2), value: session.phase)
         .animation(reduceMotion ? nil : .easeOut(duration: 0.25), value: setupStep)
     }
 

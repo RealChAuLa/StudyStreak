@@ -2,7 +2,7 @@ import Foundation
 import SwiftUI
 
 struct HomeView: View {
-    let username: String
+    let displayName: String
 
     var body: some View {
         TimelineView(.periodic(from: .now, by: 60)) { context in
@@ -10,7 +10,7 @@ struct HomeView: View {
                 Text("\(greeting(at: context.date)),")
                     .font(AppTypography.subheadline)
                     .foregroundStyle(AppColors.secondary)
-                Text(username)
+                Text(displayName)
                     .font(AppTypography.largeTitle)
                     .foregroundStyle(AppColors.text)
                     .fixedSize(horizontal: false, vertical: true)
@@ -35,10 +35,10 @@ struct HomeView: View {
 }
 
 #Preview("Home") {
-    NavigationStack { HomeView(username: "devinda.studies") }
+    NavigationStack { HomeView(displayName: "Devinda") }
 }
 
 #Preview("Home · Dark") {
-    NavigationStack { HomeView(username: "devinda.studies") }
+    NavigationStack { HomeView(displayName: "Devinda") }
         .preferredColorScheme(.dark)
 }

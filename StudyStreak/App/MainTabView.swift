@@ -1,13 +1,13 @@
 import SwiftUI
 
 struct MainTabView: View {
-    let username: String
+    let displayName: String
     let userID: String
 
     var body: some View {
         TabView {
             Tab("Home", systemImage: "house") {
-                NavigationStack { HomeView(username: username) }
+                NavigationStack { HomeView(displayName: displayName) }
             }
 
             Tab("Zones", systemImage: "mappin.circle") {
