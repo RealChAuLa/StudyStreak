@@ -53,12 +53,7 @@ private struct ProfileContent: View {
                 identityCard
 
                 sectionTitle("Your routine")
-                VStack(spacing: 0) {
-                    unavailableRow("Daily Goal", icon: "ProfileClock", value: "Not set")
-                    Divider().overlay(AppColors.border)
-                    unavailableRow("Notifications", icon: "ProfileBell")
-                }
-                .profileCard()
+                ProfileRoutineSection(ownerID: ownerID).id(ownerID)
 
                 sectionTitle("Your study world")
                 VStack(alignment: .leading, spacing: 0) {
