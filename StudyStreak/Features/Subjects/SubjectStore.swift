@@ -38,6 +38,7 @@ enum SubjectStore {
         saved.colorID = color.rawValue
         saved.iconID = icon.rawValue
         saved.isActive = isActive
+        saved.updatedAt = .now
         do { try context.save() }
         catch { context.rollback(); throw error }
         return saved
@@ -48,6 +49,7 @@ enum SubjectStore {
         guard !ownerID.isEmpty else { throw SubjectStoreError.signedOut }
         guard subject.ownerID == ownerID else { throw SubjectStoreError.wrongOwner }
         subject.isActive = isActive
+        subject.updatedAt = .now
         do { try context.save() }
         catch { context.rollback(); throw error }
     }
@@ -63,7 +65,10 @@ enum SubjectStore {
     static func reorder(_ subjects: [StudySubject], ownerID: String, in context: ModelContext) throws {
         guard !ownerID.isEmpty else { throw SubjectStoreError.signedOut }
         guard subjects.allSatisfy({ $0.ownerID == ownerID }) else { throw SubjectStoreError.wrongOwner }
-        for (index, subject) in subjects.enumerated() { subject.sortIndex = index }
+        for (index, subject) in subjects.enumerated() {
+            subject.sortIndex = index
+            subject.updatedAt = .now
+        }
         do { try context.save() }
         catch { context.rollback(); throw error }
     }

@@ -51,7 +51,8 @@ struct ZoneDetailsSheet: View {
         .background(AppColors.background)
         .onChange(of: subjects.map(\.id), initial: true) { _, ids in
             if let selected = draft.subjectID, ids.contains(selected) { return }
-            draft.subjectID = ids.first
+            // A deleted/inactive default must be replaced deliberately when editing.
+            draft.subjectID = nil
         }
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
@@ -60,9 +61,8 @@ struct ZoneDetailsSheet: View {
             }
         }
         .sheet(isPresented: $isShowingCustomIcons) {
-            CustomZoneIconPicker(selection: draft.customSymbol) { symbol in
-                draft.customSymbol = symbol
-                draft.icon = .custom
+            CustomZoneIconPicker(selection: draft.iconID) { symbol in
+                draft.iconID = symbol
             }
             .presentationDetents([.medium])
             .presentationDragIndicator(.visible)
@@ -147,11 +147,11 @@ struct ZoneDetailsSheet: View {
                     ForEach(ZoneIcon.allCases) { icon in
                         Button {
                             if icon == .custom { isShowingCustomIcons = true }
-                            else { draft.icon = icon }
+                            else { draft.iconID = icon.rawValue }
                         } label: {
                             Group {
                                 if icon == .custom && draft.icon == .custom {
-                                    Image(systemName: draft.customSymbol).font(.title3)
+                                    Image(systemName: draft.iconID).font(.title3)
                                 } else {
                                     Image(icon.assetName).resizable().scaledToFit().frame(width: 23, height: 23)
                                 }
@@ -236,13 +236,7 @@ private struct CustomZoneIconPicker: View {
     let onSelect: (String) -> Void
     @Environment(\.dismiss) private var dismiss
 
-    private let symbols = [
-        ("book", "Book"), ("graduationcap", "Graduation cap"),
-        ("laptopcomputer", "Laptop"), ("house", "Home"),
-        ("pencil", "Pencil"), ("mappin", "Map pin"),
-        ("books.vertical", "Reading room"), ("building.2", "Study centre"),
-        ("sofa", "Study lounge")
-    ]
+    private let symbols = ZoneIcon.extraSymbols
 
     var body: some View {
         NavigationStack {

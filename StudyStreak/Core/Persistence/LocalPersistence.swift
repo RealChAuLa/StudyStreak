@@ -12,7 +12,7 @@ final class LocalPersistence {
         do {
             // A named store avoids reusing Xcode's old sample Item store.
             let configuration = ModelConfiguration("StudyStreakLocal", cloudKitDatabase: .none)
-            container = try ModelContainer(for: StudySubject.self, configurations: configuration)
+            container = try ModelContainer(for: StudySubject.self, StudyZone.self, configurations: configuration)
         } catch {
             // Keep the existing store intact and let the user retry opening it.
             container = nil

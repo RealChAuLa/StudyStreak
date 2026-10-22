@@ -10,6 +10,9 @@ final class StudySubject {
     var iconID: String
     var sortIndex: Int
     var createdAt: Date
+    var updatedAt: Date = Date.now
+    @Relationship(deleteRule: .nullify, inverse: \StudyZone.defaultSubject)
+    var zones: [StudyZone] = []
     // A stored default keeps existing subjects active when the schema is updated.
     var isActive: Bool = true
 
@@ -22,5 +25,6 @@ final class StudySubject {
         self.sortIndex = sortIndex
         self.isActive = isActive
         createdAt = .now
+        updatedAt = createdAt
     }
 }

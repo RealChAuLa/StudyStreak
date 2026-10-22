@@ -6,7 +6,8 @@ import SwiftUI
 import UIKit
 
 struct ZoneEditorView: View {
-    let isEditing: Bool
+    let zone: StudyZone?
+    private var isEditing: Bool { zone != nil }
     @State private var draft: ZoneEditorDraft
     @State private var search = ZonePlaceSearch()
     @State private var camera: MapCameraPosition
@@ -16,12 +17,17 @@ struct ZoneEditorView: View {
     @GestureState private var isPinGestureActive = false
     @State private var isChoosingLocation = false
     @State private var keyboardTop: CGFloat?
+    @State private var errorMessage: String?
+    @State private var isLeavingAfterSave = false
     @FocusState private var isSearchFocused: Bool
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.studyUserID) private var ownerID
+    @Environment(\.modelContext) private var modelContext
+    @Environment(\.dismiss) private var dismiss
 
-    init(draft: ZoneEditorDraft = ZoneEditorDraft(), isEditing: Bool = false) {
-        self.isEditing = isEditing
+    init(zone: StudyZone? = nil) {
+        self.zone = zone
+        let draft = zone.map { ZoneEditorDraft(zone: $0) } ?? ZoneEditorDraft()
         _draft = State(initialValue: draft)
         let region = MKCoordinateRegion(center: draft.coordinate, latitudinalMeters: 900, longitudinalMeters: 900)
         _visibleRegion = State(initialValue: region)
@@ -77,17 +83,41 @@ struct ZoneEditorView: View {
             // GestureState also resets when a gesture is cancelled or interrupted.
             if !active { pinDrag = nil }
         }
-        .sheet(isPresented: $isShowingDetails) {
-            ZoneDetailsSheet(draft: $draft, ownerID: ownerID) {
-                // TODO: Save the draft with SwiftData in the next milestone.
-            }
+        .task(id: search.query) {
+            guard isSearchFocused else { return }
+            do { try await Task.sleep(for: .milliseconds(300)) }
+            catch { return }
+            guard !Task.isCancelled, isSearchFocused else { return }
+            search.suggest(near: visibleRegion)
+        }
+        .sheet(isPresented: $isShowingDetails, onDismiss: {
+            if isLeavingAfterSave { dismiss() }
+        }) {
+            detailsSheet
+        }
+    }
+
+    private var detailsSheet: some View {
+        ZoneDetailsSheet(draft: $draft, ownerID: ownerID, onSave: saveZone)
             .presentationDetents([.height(detailsHeight), .large])
             .presentationDragIndicator(.visible)
             .presentationCornerRadius(24)
             .presentationBackground(AppColors.background)
             .presentationBackgroundInteraction(.enabled(upThrough: .height(detailsHeight)))
             .interactiveDismissDisabled()
-        }
+            .alert("Couldn’t save zone", isPresented: Binding(
+                get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } }
+            )) {
+                Button("OK", role: .cancel) { }
+            } message: { Text(errorMessage ?? "Please try again.") }
+    }
+
+    private func saveZone() {
+        do {
+            try ZoneStore.save(draft, ownerID: ownerID, editing: zone, in: modelContext)
+            isLeavingAfterSave = true
+            isShowingDetails = false
+        } catch { errorMessage = error.localizedDescription }
     }
 
     private var map: some View {
@@ -109,7 +139,11 @@ struct ZoneEditorView: View {
             .mapStyle(.standard(elevation: .flat, pointsOfInterest: .excludingAll))
             .onMapCameraChange(frequency: .onEnd) { context in visibleRegion = context.region }
             .onTapGesture(coordinateSpace: .local) { point in
-                if let coordinate = proxy.convert(point, from: .local) { draft.coordinate = coordinate }
+                if let coordinate = proxy.convert(point, from: .local) {
+                    draft.coordinate = coordinate
+                    draft.address = nil
+                    search.clear()
+                }
                 if isChoosingLocation { finishLocationSearch(clearQuery: true) }
             }
         }
@@ -139,8 +173,10 @@ struct ZoneEditorView: View {
         transaction.disablesAnimations = true
         withTransaction(transaction) {
             draft.coordinate = coordinate
+            draft.address = nil
             pinDrag = nil
         }
+        search.clear()
         if isChoosingLocation { finishLocationSearch(clearQuery: true) }
     }
 
@@ -190,7 +226,7 @@ struct ZoneEditorView: View {
     private var pin: some View {
         Group {
             if draft.icon == .custom {
-                Image(systemName: draft.customSymbol).font(.system(size: 20))
+                Image(systemName: draft.iconID).font(.system(size: 20))
             } else {
                 Image(draft.icon == .library ? "ZoneLibraryPin" : draft.icon.assetName)
                     .resizable().scaledToFit().frame(width: 20, height: 20)
@@ -217,30 +253,34 @@ struct ZoneEditorView: View {
                 }
             }
 
-            if !search.results.isEmpty {
+            if !search.results.isEmpty || !search.suggestions.isEmpty {
                 ScrollView {
                     LazyVStack(spacing: 0) {
+                        ForEach(search.suggestions) { suggestion in
+                            Button {
+                                isSearchFocused = false
+                                Task {
+                                    if let result = await search.resolve(suggestion, near: visibleRegion) {
+                                        selectPlace(result, in: viewport)
+                                    }
+                                }
+                            } label: {
+                                searchResultLabel(suggestion.title, address: suggestion.subtitle)
+                            }
+                            .buttonStyle(.plain)
+                        }
                         ForEach(search.results) { result in
                             Button {
-                                draft.coordinate = result.coordinate
-                                if draft.name.isEmpty { draft.name = result.name }
-                                search.select(result)
-                                finishLocationSearch()
-                                focusOnZone(in: viewport)
+                                selectPlace(result, in: viewport)
                             } label: {
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text(result.name).font(AppTypography.headline).foregroundStyle(AppColors.text)
-                                    Text(result.address).font(AppTypography.caption).foregroundStyle(AppColors.secondary)
-                                }
-                                .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
-                                .padding(12)
-                                .contentShape(Rectangle())
+                                searchResultLabel(result.name, address: result.address)
                             }
                             .buttonStyle(.plain)
                         }
                     }
                 }
-                .frame(maxHeight: 240)
+                .scrollIndicators(.hidden)
+                .frame(maxHeight: searchResultsHeight(in: viewport))
                 .background(AppColors.surface, in: RoundedRectangle(cornerRadius: 16))
             } else if let message = search.message {
                 Text(message).font(AppTypography.subheadline).foregroundStyle(AppColors.secondary)
@@ -248,6 +288,32 @@ struct ZoneEditorView: View {
                     .background(AppColors.surface, in: RoundedRectangle(cornerRadius: 16))
             }
         }
+    }
+
+    private func searchResultsHeight(in viewport: MapViewport) -> CGFloat {
+        let visibleBottom = keyboardTop.map { min(viewport.size.height, $0 - viewport.globalMinY) } ?? viewport.size.height
+        return min(240, max(80, visibleBottom - 84))
+    }
+
+    private func searchResultLabel(_ name: String, address: String) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(name).font(AppTypography.headline).foregroundStyle(AppColors.text)
+            if !address.isEmpty {
+                Text(address).font(AppTypography.caption).foregroundStyle(AppColors.secondary)
+            }
+        }
+        .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+        .padding(12)
+        .contentShape(Rectangle())
+    }
+
+    private func selectPlace(_ result: ZonePlaceSearch.Result, in viewport: MapViewport) {
+        draft.coordinate = result.coordinate
+        draft.address = result.address.isEmpty ? nil : result.address
+        if draft.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { draft.name = result.name }
+        search.select(result)
+        finishLocationSearch()
+        focusOnZone(in: viewport)
     }
 
     private var searchField: some View {
@@ -286,14 +352,6 @@ struct ZoneEditorView: View {
 
 #Preview("34 · Add study zone") {
     NavigationStack { ZoneEditorView() }.tint(AppColors.primary)
-        .environment(\.studyUserID, "preview")
-        .modelContainer(for: StudySubject.self, inMemory: true)
-}
-
-#Preview("19 · Edit study zone") {
-    NavigationStack {
-        ZoneEditorView(draft: ZoneEditorDraft(name: "Library"), isEditing: true)
-    }.tint(AppColors.primary)
         .environment(\.studyUserID, "preview")
         .modelContainer(for: StudySubject.self, inMemory: true)
 }
