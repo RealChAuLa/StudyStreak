@@ -1,6 +1,7 @@
 {
   "indexes": [],
   "fieldOverrides": [
-    { "collectionGroup": "users", "fieldPath": "photoBase64", "indexes": [] }
+    { "collectionGroup": "users", "fieldPath": "photoBase64", "indexes": [] },
+    { "collectionGroup": "friendProfiles", "fieldPath": "photoBase64", "indexes": [] }
   ]
 }

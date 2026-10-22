@@ -6,6 +6,12 @@ service cloud.firestore {
     function validName(name) {
       return name is string && name.matches('^[a-z0-9._]{3,20}$');
     }
+    function matchingFriendProfile(uid, publicData, privateData) {
+      return publicData.uid == uid
+        && publicData.username == privateData.username
+        && publicData.displayName == privateData.get('displayName', privateData.username)
+        && publicData.get('photoBase64', null) == privateData.get('photoBase64', null);
+    }
     function validProfile(uid) {
       let data = request.resource.data;
       return data.keys().hasAll(['uid', 'username', 'setupCompleted', 'createdAt', 'updatedAt'])
@@ -20,7 +26,9 @@ service cloud.firestore {
         && (!('photoBase64' in data) || (data.photoBase64 is string
           && data.photoBase64.size() <= 204800
           && data.photoBase64.matches('^[A-Za-z0-9+/]*={0,2}$')))
-        && getAfter(/databases/$(database)/documents/usernames/$(data.username)).data.uid == uid;
+        && getAfter(/databases/$(database)/documents/usernames/$(data.username)).data.uid == uid
+        && (!data.setupCompleted || matchingFriendProfile(uid,
+          getAfter(/databases/$(database)/documents/friendProfiles/$(uid)).data, data));
     }
 
     match /users/{uid} {
@@ -48,6 +56,57 @@ service cloud.firestore {
         && getAfter(/databases/$(database)/documents/users/$(request.auth.uid)).data.username == name;
       allow delete: if signedIn() && resource.data.uid == request.auth.uid
         && getAfter(/databases/$(database)/documents/users/$(request.auth.uid)).data.username != name;
+    }
+
+    // Searchable identity only. Email, settings, zones and session data stay private.
+    // Profile edits and setup write this mirror in the same transaction as /users.
+    match /friendProfiles/{uid} {
+      allow get: if signedIn();
+      allow list: if signedIn() && request.query.limit <= 20;
+      allow create, update: if owns(uid)
+        && request.resource.data.keys().hasAll(['uid', 'username', 'displayName', 'updatedAt'])
+        && request.resource.data.keys().hasOnly(['uid', 'username', 'displayName', 'photoBase64', 'updatedAt'])
+        && request.resource.data.updatedAt == request.time
+        && getAfter(/databases/$(database)/documents/users/$(uid)).data.setupCompleted == true
+        && matchingFriendProfile(uid, request.resource.data,
+          getAfter(/databases/$(database)/documents/users/$(uid)).data);
+      allow delete: if false;
+    }
+
+    match /friendships/{connectionID} {
+      function participant() {
+        return signedIn() && request.auth.uid in resource.data.memberIDs;
+      }
+      function validNewRequest() {
+        let data = request.resource.data;
+        return data.keys().hasAll(['senderID', 'recipientID', 'memberIDs', 'status', 'createdAt', 'updatedAt'])
+          && data.keys().hasOnly(['senderID', 'recipientID', 'memberIDs', 'status', 'createdAt', 'updatedAt'])
+          && data.senderID is string && data.recipientID is string
+          && data.senderID.matches('^[^/:]{1,128}$')
+          && data.recipientID.matches('^[^/:]{1,128}$')
+          && data.senderID == request.auth.uid
+          && data.senderID != data.recipientID
+          && connectionID == data.senderID + ':' + data.recipientID
+          && data.memberIDs == [data.senderID, data.recipientID]
+          && data.status == 'pending'
+          && data.createdAt == request.time && data.updatedAt == request.time
+          && exists(/databases/$(database)/documents/friendProfiles/$(data.senderID))
+          && exists(/databases/$(database)/documents/friendProfiles/$(data.recipientID))
+          && !existsAfter(/databases/$(database)/documents/friendships/$(data.recipientID + ':' + data.senderID));
+      }
+
+      // A missing document may be read by a transaction checking both directions.
+      allow get: if signedIn() &&
+        (!exists(/databases/$(database)/documents/friendships/$(connectionID)) || participant());
+      allow list: if participant();
+      allow create: if signedIn() && validNewRequest();
+      // Only the recipient can turn a pending request into a friendship.
+      allow update: if participant() && request.auth.uid == resource.data.recipientID
+        && resource.data.status == 'pending' && request.resource.data.status == 'accepted'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt'])
+        && request.resource.data.updatedAt == request.time;
+      // Pending only: sender cancels or recipient declines. No unfriend UI yet.
+      allow delete: if participant() && resource.data.status == 'pending';
     }
 
     match /{document=**} { allow read, write: if false; }

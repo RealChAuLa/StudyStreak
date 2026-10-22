@@ -123,6 +123,11 @@ final class AppSession {
                 guard !Task.isCancelled, let self, self.uid == userID else { return }
                 self.profile = saved
                 self.phase = saved?.setupCompleted == true ? .home : .accountSetup
+                if saved?.setupCompleted == true {
+                    // Backfill the searchable directory for existing accounts without
+                    // blocking sign-in offline. Add Friends offers a visible retry.
+                    try? await profiles.synchronizeFriendProfile(uid: userID)
+                }
             } catch {
                 guard !Task.isCancelled, let self, self.uid == userID else { return }
                 self.profileErrorMessage = AccountError.message(for: error)

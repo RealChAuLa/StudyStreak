@@ -64,6 +64,13 @@ nonisolated final class ProfileRepository: @unchecked Sendable {
                     fields["setupCompleted"] = false
                 }
                 transaction.setData(fields, forDocument: userRef, merge: true)
+                if user.data()?["setupCompleted"] as? Bool == true {
+                    transaction.setData(Self.friendProfileFields(
+                        uid: uid, username: name,
+                        displayName: fields["displayName"] as? String ?? existingDisplayName,
+                        photoBase64: user.data()?["photoBase64"] as? String
+                    ), forDocument: userRef.firestore.collection("friendProfiles").document(uid))
+                }
                 if let oldClaimRef { transaction.deleteDocument(oldClaimRef) }
                 return nil
             } catch {
@@ -91,6 +98,11 @@ nonisolated final class ProfileRepository: @unchecked Sendable {
                     "photoBase64": photo, "setupCompleted": true,
                     "updatedAt": FieldValue.serverTimestamp()
                 ], forDocument: userRef)
+                transaction.setData(Self.friendProfileFields(
+                    uid: uid, username: name,
+                    displayName: user.data()?["displayName"] as? String,
+                    photoBase64: photoData?.base64EncodedString()
+                ), forDocument: userRef.firestore.collection("friendProfiles").document(uid))
                 return nil
             } catch {
                 errorPointer?.pointee = error as NSError
@@ -133,6 +145,10 @@ nonisolated final class ProfileRepository: @unchecked Sendable {
                     "username": name, "displayName": resolvedName, "photoBase64": photo,
                     "updatedAt": FieldValue.serverTimestamp()
                 ], forDocument: userRef)
+                transaction.setData(Self.friendProfileFields(
+                    uid: uid, username: name, displayName: resolvedName,
+                    photoBase64: photoData?.base64EncodedString()
+                ), forDocument: userRef.firestore.collection("friendProfiles").document(uid))
                 if let oldClaimRef { transaction.deleteDocument(oldClaimRef) }
                 return nil
             } catch {
@@ -142,5 +158,45 @@ nonisolated final class ProfileRepository: @unchecked Sendable {
         }
         return UserProfile(uid: uid, username: name, displayName: resolvedName,
                            photoBase64: photoData?.base64EncodedString(), setupCompleted: true)
+    }
+
+    func synchronizeFriendProfile(uid: String) async throws {
+        let userRef = database.collection("users").document(uid)
+        let directoryRef = database.collection("friendProfiles").document(uid)
+        _ = try await database.runTransaction { transaction, errorPointer -> Any? in
+            do {
+                let user = try transaction.getDocument(userRef)
+                let directory = try transaction.getDocument(directoryRef)
+                guard let data = user.data(), data["setupCompleted"] as? Bool == true,
+                      let username = data["username"] as? String else { throw AccountError.incompleteProfile }
+                let displayName = DisplayNameRules.resolved(data["displayName"] as? String ?? "", username: username)
+                let photo = data["photoBase64"] as? String
+                let existing = directory.data()
+                if existing?["uid"] as? String == uid,
+                   existing?["username"] as? String == username,
+                   existing?["displayName"] as? String == displayName,
+                   existing?["photoBase64"] as? String == photo { return nil }
+                // Read the current private profile in this transaction so a slow
+                // startup sync cannot overwrite a more recent username/photo edit.
+                transaction.setData(Self.friendProfileFields(uid: uid, username: username,
+                                                              displayName: displayName, photoBase64: photo),
+                                    forDocument: directoryRef)
+                return nil
+            } catch {
+                errorPointer?.pointee = error as NSError
+                return nil
+            }
+        }
+    }
+
+    private static func friendProfileFields(uid: String, username: String,
+                                             displayName: String?, photoBase64: String?) -> [String: Any] {
+        var fields: [String: Any] = [
+            "uid": uid, "username": username,
+            "displayName": DisplayNameRules.resolved(displayName ?? "", username: username),
+            "updatedAt": FieldValue.serverTimestamp()
+        ]
+        if let photoBase64 { fields["photoBase64"] = photoBase64 }
+        return fields
     }
 }
