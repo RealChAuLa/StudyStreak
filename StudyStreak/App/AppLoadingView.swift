@@ -40,11 +40,6 @@ struct AppLoadingView: View {
 
     private var mark: some View {
         ZStack {
-            if animates {
-                LoadingHalo()
-            } else {
-                Image("LoadingHalo").resizable().scaledToFit()
-            }
             Image("LoadingMark")
                 .resizable().scaledToFit()
                 .frame(width: 112, height: 112)
@@ -91,19 +86,6 @@ struct AppLoadingView: View {
     }
 }
 
-private struct LoadingHalo: View {
-    var body: some View {
-        Image("LoadingHalo").resizable().scaledToFit()
-            .keyframeAnimator(initialValue: 0.0) { halo, phase in
-                halo.scaleEffect(0.96 + 0.08 * phase)
-                    .opacity(0.6 + 0.4 * phase)
-            } keyframes: { _ in
-                LinearKeyframe(1, duration: LoadingMotion.haloHalfCycle)
-                LinearKeyframe(0, duration: LoadingMotion.haloHalfCycle)
-            }
-    }
-}
-
 private struct LoadingDot: View {
     let delay: Double
 
@@ -122,8 +104,7 @@ private struct LoadingDot: View {
     }
 }
 
-// Figma's 3.6-second preview contains one halo cycle and three dot cycles.
-// The icon/brand entrance plays once; the indicators repeat while loading.
+// loading screen animations
 nonisolated private enum LoadingMotion {
     static let entranceDuration = 0.6
     static let brandDelay = 0.18
@@ -139,10 +120,6 @@ nonisolated private enum LoadingMotion {
 
 #Preview("App loading · Dark") {
     AppLoadingView().preferredColorScheme(.dark)
-}
-
-#Preview("App loading · Reduce Motion") {
-    AppLoadingView().environment(\.accessibilityReduceMotion, true)
 }
 
 #Preview("App loading · SE", traits: .fixedLayout(width: 375, height: 667)) {

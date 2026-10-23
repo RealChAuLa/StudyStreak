@@ -30,7 +30,8 @@ final class StudyZone {
         self.address = address
         self.defaultSubject = defaultSubject
         self.isEnabled = isEnabled
-        createdAt = .now
-        updatedAt = createdAt
+        let timestamp = Date.now
+        createdAt = timestamp
+        updatedAt = timestamp
     }
 }

@@ -32,29 +32,7 @@ private struct ZoneListContent: View {
                 savedZones
             }
         }
-        .background(AppColors.background.ignoresSafeArea())
         .navigationTitle("Study zones")
-        .navigationBarTitleDisplayMode(.large)
-        .toolbar(.visible, for: .navigationBar)
-        .toolbarBackground(AppColors.background, for: .navigationBar)
-        .toolbarBackground(.visible, for: .navigationBar)
-        .toolbar {
-            if #available(iOS 26.0, *) {
-                ToolbarItem(placement: .largeTitle) {
-                    Text("Study zones").font(AppTypography.largeTitle).foregroundStyle(AppColors.text)
-                        .accessibilityAddTraits(.isHeader)
-                }
-            }
-            if !zones.isEmpty {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button { isAddingZone = true } label: {
-                        Image("ZoneListAdd").resizable().scaledToFit().frame(width: 20, height: 20)
-                    }
-                    .tint(AppColors.primary)
-                    .accessibilityLabel("Add study zone")
-                }
-            }
-        }
         .navigationDestination(isPresented: $isAddingZone) { ZoneEditorView() }
         .navigationDestination(item: $zoneToEdit) { zone in ZoneEditorView(zone: zone) }
         .confirmationDialog("Delete study zone?", isPresented: Binding(

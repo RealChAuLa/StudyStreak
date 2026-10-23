@@ -16,48 +16,109 @@ struct NotificationPreferencesView: View {
         default: false
         }
     }
+    
     private var enabled: Bool { preferences.settings.notificationsEnabled && systemAllowsNotifications }
 
     var body: some View {
         Form {
             Section {
+                Toggle(
+                    "Allow notifications",
+                    isOn: Binding(
+                        get: { enabled },
+                        set: setEnabled
+                    )
+                )
+                .disabled(
+                    isRequesting || !authorization.hasLoadedSettings
+                )
+
+                Toggle(
+                    "Streak alerts",
+                    isOn: $preferences.settings.streakAlerts
+                )
+                .disabled(!enabled)
+
+                Toggle(
+                    "Break reminders",
+                    isOn: $preferences.settings.breakReminders
+                )
+                .disabled(!enabled)
+            } header: {
                 VStack(alignment: .leading, spacing: 16) {
-                    Text("A little encouragement.").font(AppTypography.title2).foregroundStyle(AppColors.text)
+                    Text("A little encouragement.")
+                        .font(AppTypography.title2)
+                        .foregroundStyle(AppColors.text)
+
                     Text("Gentle reminders, at the right moment.")
-                        .font(AppTypography.body).foregroundStyle(AppColors.secondary)
+                        .font(AppTypography.body)
+                        .foregroundStyle(AppColors.secondary)
                 }
-                .listRowInsets(EdgeInsets()).listRowBackground(Color.clear)
+                .textCase(nil)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.bottom, 16)
             }
-            switches
+            .listRowInsets(
+                EdgeInsets(
+                    top: 16,
+                    leading: 16,
+                    bottom: 16,
+                    trailing: 16
+                )
+            )
+            .listRowBackground(AppColors.surface)
+            .listRowSeparatorTint(AppColors.border)
+
             if authorization.authorizationStatus == .denied {
                 Section {
                     Text("Notifications are off in iOS Settings.")
-                        .font(AppTypography.subheadline).foregroundStyle(AppColors.secondary)
+                        .font(AppTypography.subheadline)
+                        .foregroundStyle(AppColors.secondary)
+
                     Button("Open Settings", action: openSettings)
                         .foregroundStyle(AppColors.primary)
-                }.listRowBackground(AppColors.surface)
+                }
+                .listRowBackground(AppColors.surface)
             }
+
             reminderTime
             breakFrequency
         }
-        .font(AppTypography.body).foregroundStyle(AppColors.text)
+        .font(AppTypography.body)
+        .foregroundStyle(AppColors.text)
         .tint(AppColors.success)
         .listSectionSpacing(16)
         .contentMargins(.horizontal, 24, for: .scrollContent)
-        .contentMargins(.top, 32, for: .scrollContent)
-        .scrollContentBackground(.hidden).scrollIndicators(.hidden)
+        .contentMargins(.top, 16, for: .scrollContent)
+        .scrollContentBackground(.hidden)
+        .scrollIndicators(.hidden)
         .background(AppColors.background.ignoresSafeArea())
-        .navigationTitle("Notifications").navigationBarTitleDisplayMode(.inline)
+        .navigationTitle("Notifications")
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar(.hidden, for: .tabBar)
-        .task { await authorization.refresh() }
-        .onChange(of: scenePhase) { _, phase in
-            if phase == .active { Task { await authorization.refresh() } }
+        .task {
+            await authorization.refresh()
         }
-        .alert("Couldn’t request notifications", isPresented: $showsError) {
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active {
+                Task {
+                    await authorization.refresh()
+                }
+            }
+        }
+        .alert(
+            "Couldn’t request notifications",
+            isPresented: $showsError
+        ) {
             Button("OK", role: .cancel) { }
-        } message: { Text("Please try again, or enable notifications in Settings.") }
+        } message: {
+            Text(
+                "Please try again, or enable notifications in Settings."
+            )
+        }
     }
-
+    
     private var switches: some View {
         Section {
             Toggle("Allow notifications", isOn: Binding(get: { enabled }, set: setEnabled))
