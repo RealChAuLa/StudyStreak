@@ -35,6 +35,7 @@ private struct ZoneListContent: View {
         .navigationTitle("Study zones")
         .navigationDestination(isPresented: $isAddingZone) { ZoneEditorView() }
         .navigationDestination(item: $zoneToEdit) { zone in ZoneEditorView(zone: zone) }
+        .background(AppColors.background.ignoresSafeArea())
         .confirmationDialog("Delete study zone?", isPresented: Binding(
             get: { zoneToDelete != nil }, set: { if !$0 { zoneToDelete = nil } }
         ), titleVisibility: .visible, presenting: zoneToDelete) { zone in

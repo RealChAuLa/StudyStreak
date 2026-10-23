@@ -18,7 +18,7 @@ struct ZoneEditorView: View {
     @State private var isChoosingLocation = false
     @State private var keyboardTop: CGFloat?
     @State private var errorMessage: String?
-    @State private var isLeavingAfterSave = false
+    @State private var isLeavingEditor = false
     @FocusState private var isSearchFocused: Bool
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.studyUserID) private var ownerID
@@ -91,7 +91,7 @@ struct ZoneEditorView: View {
             search.suggest(near: visibleRegion)
         }
         .sheet(isPresented: $isShowingDetails, onDismiss: {
-            if isLeavingAfterSave { dismiss() }
+            if isLeavingEditor { dismiss() }
         }) {
             detailsSheet
         }
@@ -115,8 +115,7 @@ struct ZoneEditorView: View {
     private func saveZone() {
         do {
             try ZoneStore.save(draft, ownerID: ownerID, editing: zone, in: modelContext)
-            isLeavingAfterSave = true
-            isShowingDetails = false
+            closeEditor()
         } catch { errorMessage = error.localizedDescription }
     }
 
@@ -239,6 +238,15 @@ struct ZoneEditorView: View {
         .contentShape(Rectangle())
         .accessibilityLabel("Study zone pin")
         .accessibilityHint("Drag the pin or tap the map to move it.")
+        .navigationBarBackButtonHidden(true)
+        .toolbar {
+            ToolbarItem(placement: .topBarLeading){
+                Button(action : closeEditor){
+                    Label("Back",systemImage: "chevron.backward")
+                }
+                .disabled(isLeavingEditor)
+            }
+        }
     }
 
     private func locationSearch(in viewport: MapViewport) -> some View {
@@ -347,6 +355,20 @@ struct ZoneEditorView: View {
         .padding(.trailing, 8)
         .frame(minHeight: 48)
         .background(AppColors.surface, in: RoundedRectangle(cornerRadius: 16))
+    }
+    
+    private func closeEditor() {
+        guard !isLeavingEditor else { return }
+        isLeavingEditor = true
+        isSearchFocused = false
+        search.cancle()
+        
+        if isShowingDetails {
+            isShowingDetails = false
+        }
+        else {
+            dismiss()
+        }
     }
 }
 

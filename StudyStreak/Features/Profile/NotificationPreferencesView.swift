@@ -45,7 +45,7 @@ struct NotificationPreferencesView: View {
                 )
                 .disabled(!enabled)
             } header: {
-                VStack(alignment: .leading, spacing: 16) {
+                VStack(alignment: .leading, spacing: 8) {
                     Text("A little encouragement.")
                         .font(AppTypography.title2)
                         .foregroundStyle(AppColors.text)

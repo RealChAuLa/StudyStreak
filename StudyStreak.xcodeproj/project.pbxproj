@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A18E10100000000000000002 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = A18E10100000000000000001 /* GoogleSignIn */; };
+		A18E10100000000000000004 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = A18E10100000000000000003 /* GoogleService-Info.plist */; };
 		D7C6B371308775C3008802D0 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = D7C6B370308775C3008802D0 /* FirebaseAuth */; };
 		D7C6B373308775C3008802D0 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = D7C6B372308775C3008802D0 /* FirebaseCore */; };
 		D7C6B375308775C3008802D0 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = D7C6B374308775C3008802D0 /* FirebaseFirestore */; };
@@ -14,6 +16,7 @@
 
 /* Begin PBXFileReference section */
 		A18E10100000000000000003 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		D7E53CD730821A2A0073B792 /* StudyStreak.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = StudyStreak.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -288,6 +291,10 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-ObjC",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = realchaula.StudyStreak;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -322,6 +329,10 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-ObjC",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = realchaula.StudyStreak;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
