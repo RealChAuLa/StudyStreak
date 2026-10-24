@@ -77,7 +77,7 @@ nonisolated enum SessionAnalytics {
         max(0, min(range.end, other.end).timeIntervalSince(max(range.start, other.start)))
     }
 
-    private static func dailyTotals(ranges: [DateInterval], calendar: Calendar) -> [Date: TimeInterval] {
+    static func dailyTotals(ranges: [DateInterval], calendar: Calendar) -> [Date: TimeInterval] {
         var totals: [Date: TimeInterval] = [:]
         for range in ranges {
             var cursor = range.start
