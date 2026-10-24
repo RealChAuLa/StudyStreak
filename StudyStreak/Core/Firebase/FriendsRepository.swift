@@ -70,14 +70,20 @@ nonisolated final class FriendsRepository: @unchecked Sendable {
         _ = try await database.runTransaction { transaction, errorPointer -> Any? in
             do {
                 let snapshot = try transaction.getDocument(reference)
-                guard let current = Self.connection(snapshot), current.status == .pending else {
+                guard let current = Self.connection(snapshot) else {
                     throw FriendsError.requestChanged
                 }
                 switch action {
                 case .accept, .decline:
-                    guard current.recipientID == userID else { throw FriendsError.requestChanged }
+                    guard current.status == .pending, current.recipientID == userID else { throw FriendsError.requestChanged }
                 case .cancel:
-                    guard current.senderID == userID else { throw FriendsError.requestChanged }
+                    guard current.status == .pending, current.senderID == userID else { throw FriendsError.requestChanged }
+                case .unfriend:
+                    guard current.status == .accepted,
+                          current.senderID == userID || current.recipientID == userID,
+                          current.senderID == connection.senderID,
+                          current.recipientID == connection.recipientID,
+                          current.createdAt == connection.createdAt else { throw FriendsError.requestChanged }
                 case .send:
                     throw FriendsError.requestChanged
                 }

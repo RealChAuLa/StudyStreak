@@ -71,17 +71,7 @@ private struct ProfileContent: View {
                     }
                     .buttonStyle(.plain)
                     Divider().overlay(AppColors.border)
-                    Toggle("Leaderboard visibility", isOn: .constant(false))
-                        .font(AppTypography.body)
-                        .foregroundStyle(AppColors.text)
-                        .tint(AppColors.success)
-                        .padding(.vertical, 12)
-                        .disabled(true)
-                        .accessibilityHint("Coming soon")
-                    Text("Choose whether friends can see your weekly study time. Coming soon.")
-                        .font(AppTypography.caption)
-                        .foregroundStyle(AppColors.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
+                    LeaderboardVisibilityRow(ownerID: ownerID).id(ownerID)
                 }
                 .profileCard()
 

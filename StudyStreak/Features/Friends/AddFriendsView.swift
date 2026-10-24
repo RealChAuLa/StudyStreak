@@ -5,6 +5,7 @@ struct AddFriendsView: View {
     @State private var model: AddFriendsModel
     @State private var retryCount = 0
     @State private var searchRetry = 0
+    @State private var unfriendTarget: UnfriendTarget?
 
     init(userID: String, username: String) {
         self.username = username
@@ -55,6 +56,21 @@ struct AddFriendsView: View {
         }
         .task(id: "\(model.query)|\(searchRetry)") { await model.search() }
         .onDisappear { model.stop() }
+        .confirmationDialog("Remove friend?", isPresented: Binding(
+            get: { unfriendTarget != nil }, set: { if !$0 { unfriendTarget = nil } }
+        ), titleVisibility: .visible, presenting: unfriendTarget) { target in
+            Button("Unfriend", role: .destructive) {
+                unfriendTarget = nil
+                Task {
+                    await model.perform(.unfriend, otherID: target.profile.id,
+                                        expectedConnection: target.connection)
+                }
+            }
+            .disabled(!canAct)
+            Button("Cancel", role: .cancel) { unfriendTarget = nil }
+        } message: { target in
+            Text("Remove @\(target.profile.username) from your friends? You can send another request later.")
+        }
         .alert("Couldn’t update friends", isPresented: Binding(
             get: { model.actionError != nil }, set: { if !$0 { model.actionError = nil } }
         )) {
@@ -172,7 +188,7 @@ struct AddFriendsView: View {
             ProgressView().tint(AppColors.primary).frame(width: 84, height: 44)
         } else if let connection = model.connection(with: profile.id) {
             if connection.status == .accepted {
-                resultBadge("Friends")
+                unfriendButton(profile, connection: connection)
             } else if connection.senderID == model.userID {
                 resultBadge("Requested")
             } else {
@@ -181,6 +197,24 @@ struct AddFriendsView: View {
         } else {
             resultButton("Add", profile: profile, action: .send)
         }
+    }
+
+    private func unfriendButton(_ profile: FriendProfile, connection: FriendConnection) -> some View {
+        Button(role: .destructive) {
+            unfriendTarget = UnfriendTarget(profile: profile, connection: connection)
+        } label: {
+            Text("Unfriend").font(AppTypography.caption.weight(.semibold))
+                .foregroundStyle(AppColors.danger)
+                .frame(minWidth: 84, minHeight: 44)
+                .background(AppColors.warm, in: RoundedRectangle(cornerRadius: 12))
+        }
+        .buttonStyle(.plain).disabled(!canAct)
+        .accessibilityLabel("Unfriend \(profile.username)")
+    }
+
+    private struct UnfriendTarget {
+        let profile: FriendProfile
+        let connection: FriendConnection
     }
 
     private func resultButton(_ title: String, profile: FriendProfile, action: FriendAction) -> some View {

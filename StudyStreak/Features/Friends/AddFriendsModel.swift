@@ -115,7 +115,7 @@ final class AddFriendsModel {
         }
     }
 
-    func perform(_ action: FriendAction, otherID: String) async {
+    func perform(_ action: FriendAction, otherID: String, expectedConnection: FriendConnection? = nil) async {
         guard isReady, !busyUserIDs.contains(otherID) else { return }
         let current = generation
         busyUserIDs.insert(otherID)
@@ -124,7 +124,7 @@ final class AddFriendsModel {
             if action == .send {
                 try await repository.sendRequest(from: userID, to: otherID)
             } else {
-                guard let connection = connection(with: otherID) else { throw FriendsError.requestChanged }
+                guard let connection = expectedConnection ?? connection(with: otherID) else { throw FriendsError.requestChanged }
                 try await repository.respond(to: connection, as: userID, action: action)
             }
         } catch {

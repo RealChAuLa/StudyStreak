@@ -28,7 +28,7 @@ nonisolated struct FriendConnection: Identifiable, Equatable, Sendable {
     }
 }
 
-nonisolated enum FriendAction: Equatable, Sendable { case send, accept, decline, cancel }
+nonisolated enum FriendAction: Equatable, Sendable { case send, accept, decline, cancel, unfriend }
 
 nonisolated enum FriendSearch {
     static func normalized(_ value: String) -> String {

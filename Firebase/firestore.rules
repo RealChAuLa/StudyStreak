@@ -105,8 +105,56 @@ service cloud.firestore {
         && resource.data.status == 'pending' && request.resource.data.status == 'accepted'
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt'])
         && request.resource.data.updatedAt == request.time;
-      // Pending only: sender cancels or recipient declines. No unfriend UI yet.
-      allow delete: if participant() && resource.data.status == 'pending';
+      // Either participant can end an accepted friendship as well as a pending request.
+      allow delete: if participant() && resource.data.status in ['pending', 'accepted'];
+    }
+
+    function acceptedFriend(uid) {
+      let forward = /databases/$(database)/documents/friendships/$(request.auth.uid + ':' + uid);
+      let reverse = /databases/$(database)/documents/friendships/$(uid + ':' + request.auth.uid);
+      return signedIn() && request.auth.uid != uid
+        && ((exists(forward) && get(forward).data.status == 'accepted')
+          || (exists(reverse) && get(reverse).data.status == 'accepted'));
+    }
+
+    match /leaderboardPreferences/{uid} {
+      // Accepted friends can observe the flag without receiving private study totals.
+      allow get: if owns(uid) || (signedIn() && acceptedFriend(uid));
+      allow list, delete: if false;
+      allow create, update: if owns(uid)
+        && request.resource.data.keys().hasAll(['uid', 'isVisible', 'updatedAt'])
+        && request.resource.data.keys().hasOnly(['uid', 'isVisible', 'updatedAt'])
+        && request.resource.data.uid == uid
+        && request.resource.data.isVisible is bool
+        && request.resource.data.updatedAt == request.time;
+    }
+
+    match /leaderboardStats/{uid} {
+      function sharedWithFriends() {
+        let preference = /databases/$(database)/documents/leaderboardPreferences/$(uid);
+        return exists(preference) && get(preference).data.isVisible == true;
+      }
+      function validSummary() {
+        let data = request.resource.data;
+        return data.keys().hasAll(['uid', 'weekID', 'weekSeconds', 'totalSeconds',
+            'streak', 'streakDay', 'timeZoneID', 'updatedAt'])
+          && data.keys().hasOnly(['uid', 'weekID', 'weekSeconds', 'totalSeconds',
+            'streak', 'streakDay', 'timeZoneID', 'updatedAt'])
+          && data.uid == uid
+          && data.weekID is string
+          && data.weekID.matches('^[0-9]{4}-W(0[1-9]|[1-4][0-9]|5[0-3])$')
+          && data.weekSeconds is int && data.weekSeconds >= 0 && data.weekSeconds <= 604800
+          && data.totalSeconds is int && data.totalSeconds >= data.weekSeconds
+          && data.streak is int && data.streak >= 0
+          && data.streakDay is string
+          && ((data.streak == 0 && data.streakDay == '')
+            || (data.streak > 0 && data.streakDay.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')))
+          && data.timeZoneID is string && data.timeZoneID.size() > 0 && data.timeZoneID.size() <= 100
+          && data.updatedAt == request.time;
+      }
+      allow get: if owns(uid) || (signedIn() && acceptedFriend(uid) && sharedWithFriends());
+      allow list, delete: if false;
+      allow create, update: if owns(uid) && validSummary();
     }
 
     match /{document=**} { allow read, write: if false; }

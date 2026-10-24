@@ -20,6 +20,7 @@ final class AppSession {
     @ObservationIgnored private var profiles: ProfileRepository?
     @ObservationIgnored private var authListener: AuthStateDidChangeListenerHandle?
     @ObservationIgnored private var profileTask: Task<Void, Never>?
+    @ObservationIgnored var prepareForSignOut: (@MainActor () throws -> Void)?
 
     init() {
         guard FirebaseApp.app() != nil else {
@@ -56,7 +57,10 @@ final class AppSession {
 
     func signOut() throws {
         guard let authentication else { throw AccountError.notConfigured }
+        // Persist the pause before ending authentication. A failed save can be retried.
+        try prepareForSignOut?()
         try authentication.signOut()
+        prepareForSignOut = nil
         profileTask?.cancel()
         preferredAuthenticationMode = .signIn
         uid = nil
@@ -109,6 +113,10 @@ final class AppSession {
     }
 
     private func loadProfile(for userID: String?) {
+        if uid != userID {
+            try? prepareForSignOut?()
+            prepareForSignOut = nil
+        }
         profileTask?.cancel()
         uid = userID
         profile = nil
