@@ -13,6 +13,7 @@ struct ZoneEditorView: View {
     @State private var camera: MapCameraPosition
     @State private var visibleRegion: MKCoordinateRegion
     @State private var isShowingDetails = false
+    @State private var isDetailsPresented = false
     @State private var pinDrag: PinDrag?
     @GestureState private var isPinGestureActive = false
     @State private var isChoosingLocation = false
@@ -67,14 +68,27 @@ struct ZoneEditorView: View {
         .background(AppColors.background.ignoresSafeArea())
         .navigationTitle(isEditing ? "Edit study zone" : "Add a study zone")
         .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden(true)
+        .toolbar(.visible, for: .navigationBar)
+        .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Button(action: closeEditor) {
+                    Label("Back", systemImage: "chevron.backward")
+                }
+                .disabled(isLeavingEditor)
+            }
+        }
         .toolbarRole(.editor)
         .toolbar(.hidden, for: .tabBar)
         .toolbarBackground(AppColors.background, for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
-        .onAppear { isShowingDetails = true }
+        .onAppear {
+            guard !isLeavingEditor else { return }
+            isShowingDetails = true
+        }
         .onDisappear { isShowingDetails = false; pinDrag = nil; search.cancel() }
         .onChange(of: isSearchFocused) { _, focused in
-            if focused {
+            if focused && !isLeavingEditor {
                 isChoosingLocation = true
                 isShowingDetails = false
             }
@@ -84,16 +98,18 @@ struct ZoneEditorView: View {
             if !active { pinDrag = nil }
         }
         .task(id: search.query) {
-            guard isSearchFocused else { return }
+            guard isSearchFocused, !isLeavingEditor else { return }
             do { try await Task.sleep(for: .milliseconds(300)) }
             catch { return }
-            guard !Task.isCancelled, isSearchFocused else { return }
+            guard !Task.isCancelled, isSearchFocused, !isLeavingEditor else { return }
             search.suggest(near: visibleRegion)
         }
         .sheet(isPresented: $isShowingDetails, onDismiss: {
+            isDetailsPresented = false
             if isLeavingEditor { dismiss() }
         }) {
             detailsSheet
+                .onAppear { isDetailsPresented = true }
         }
     }
 
@@ -112,7 +128,21 @@ struct ZoneEditorView: View {
             } message: { Text(errorMessage ?? "Please try again.") }
     }
 
+    private func closeEditor() {
+        guard !isLeavingEditor else { return }
+        isLeavingEditor = true
+        isSearchFocused = false
+        pinDrag = nil
+        search.cancel()
+
+        // The binding can already be false while the sheet is still animating out.
+        // Wait for onDismiss whenever the form has actually been presented.
+        isShowingDetails = false
+        if !isDetailsPresented { dismiss() }
+    }
+
     private func saveZone() {
+        guard !isLeavingEditor else { return }
         do {
             try ZoneStore.save(draft, ownerID: ownerID, editing: zone, in: modelContext)
             closeEditor()
@@ -180,6 +210,7 @@ struct ZoneEditorView: View {
     }
 
     private func finishLocationSearch(clearQuery: Bool = false) {
+        guard !isLeavingEditor else { return }
         isSearchFocused = false
         isChoosingLocation = false
         isShowingDetails = true
@@ -238,15 +269,6 @@ struct ZoneEditorView: View {
         .contentShape(Rectangle())
         .accessibilityLabel("Study zone pin")
         .accessibilityHint("Drag the pin or tap the map to move it.")
-        .navigationBarBackButtonHidden(true)
-        .toolbar {
-            ToolbarItem(placement: .topBarLeading){
-                Button(action : closeEditor){
-                    Label("Back",systemImage: "chevron.backward")
-                }
-                .disabled(isLeavingEditor)
-            }
-        }
     }
 
     private func locationSearch(in viewport: MapViewport) -> some View {
@@ -316,6 +338,7 @@ struct ZoneEditorView: View {
     }
 
     private func selectPlace(_ result: ZonePlaceSearch.Result, in viewport: MapViewport) {
+        guard !isLeavingEditor else { return }
         draft.coordinate = result.coordinate
         draft.address = result.address.isEmpty ? nil : result.address
         if draft.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { draft.name = result.name }
@@ -335,6 +358,7 @@ struct ZoneEditorView: View {
                 .submitLabel(.search)
                 .focused($isSearchFocused)
                 .onSubmit {
+                    guard !isLeavingEditor else { return }
                     isChoosingLocation = true
                     isShowingDetails = false
                     isSearchFocused = false
@@ -355,20 +379,6 @@ struct ZoneEditorView: View {
         .padding(.trailing, 8)
         .frame(minHeight: 48)
         .background(AppColors.surface, in: RoundedRectangle(cornerRadius: 16))
-    }
-    
-    private func closeEditor() {
-        guard !isLeavingEditor else { return }
-        isLeavingEditor = true
-        isSearchFocused = false
-        search.cancle()
-        
-        if isShowingDetails {
-            isShowingDetails = false
-        }
-        else {
-            dismiss()
-        }
     }
 }
 
