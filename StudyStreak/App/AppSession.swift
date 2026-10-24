@@ -21,6 +21,7 @@ final class AppSession {
     @ObservationIgnored private var authListener: AuthStateDidChangeListenerHandle?
     @ObservationIgnored private var profileTask: Task<Void, Never>?
     @ObservationIgnored var prepareForSignOut: (@MainActor () throws -> Void)?
+    @ObservationIgnored var onStudyUserChanged: (@MainActor (String?) -> Void)?
 
     init() {
         guard FirebaseApp.app() != nil else {
@@ -64,6 +65,7 @@ final class AppSession {
         profileTask?.cancel()
         preferredAuthenticationMode = .signIn
         uid = nil
+        onStudyUserChanged?(nil)
         profile = nil
         phase = .signedOut
     }
@@ -119,6 +121,7 @@ final class AppSession {
         }
         profileTask?.cancel()
         uid = userID
+        onStudyUserChanged?(userID)
         profile = nil
         guard let userID, let profiles else {
             phase = .signedOut

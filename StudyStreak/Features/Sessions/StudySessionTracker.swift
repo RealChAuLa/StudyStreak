@@ -37,6 +37,8 @@ final class StudySessionTracker {
     @ObservationIgnored private var models: [StudySession] = []
     @ObservationIgnored private var syncTask: Task<Void, Never>?
     @ObservationIgnored private var needsSync = false
+    @ObservationIgnored var onUserFinished: (@MainActor (SessionRecord) -> Void)?
+
 
     init(container: ModelContainer, ownerID: String) {
         self.container = container
@@ -77,25 +79,31 @@ final class StudySessionTracker {
         SessionAnalytics.dashboard(records: allRecords, now: now, goal: settings.goal(on:))
     }
 
-    func start(subjectID: UUID, zoneID: UUID?, now: Date = .now) throws {
+    func start(subjectID: UUID, zoneID: UUID?, now: Date = .now, source: SessionSource = .manual) throws {
         guard loadError == nil else { throw SessionTrackingError.unreadableStore }
         guard current == nil else { throw SessionTrackingError.alreadyRunning }
         let subject = try selectedSubject(subjectID)
         let zone = try selectedZone(zoneID)
+        if source == .automatic {
+            guard let zone, zone.subjectID == subjectID else { throw SessionTrackingError.unavailableSubject }
+        }
         let previousEnd = history.compactMap(\.endedAt).max() ?? .distantPast
         let date = max(now, previousEnd)
         let session = StudySession(ownerID: ownerID, subject: subject,
-                                   zoneID: zone?.id, zoneName: zone?.name, now: date)
+                                   zoneID: zone?.id, zoneName: zone?.name, now: date, source: source)
         session.intervals = [StudyInterval(subject: subject, now: date)]
         context.insert(session)
         try commit(inserting: session)
     }
 
-    func pause(now: Date = .now) throws {
+    func pause(now: Date = .now, reason: SessionPauseReason = .user) throws {
         guard let session = activeModel else { return }
         guard session.stateRaw == SessionState.running.rawValue else { return }
         closeOpenIntervals(session, at: boundary(for: session, now: now))
         session.stateRaw = SessionState.paused.rawValue
+        session.pauseReasonRaw = reason.rawValue
+        session.needsSubjectConfirmation = false
+        session.confirmationExpiresAt = nil
         try commit()
     }
 
@@ -106,11 +114,19 @@ final class StudySessionTracker {
         context.insert(interval)
         session.intervals.append(interval)
         session.stateRaw = SessionState.running.rawValue
+        session.pauseReasonRaw = nil
         try commit()
     }
 
+    func resumeAutomatically() throws {
+        guard let session = activeModel, session.sourceRaw == SessionSource.automatic.rawValue,
+              session.pauseReasonRaw != nil, session.pauseReasonRaw != SessionPauseReason.user.rawValue else { return }
+        _ = try selectedSubject(session.subjectID)
+        try resume()
+    }
+
     @discardableResult
-    func finish(now: Date = .now) throws -> SessionRecord {
+    func finish(now: Date = .now, automatically: Bool = false) throws -> SessionRecord {
         guard let session = activeModel else { throw SessionTrackingError.noSession }
         let date = boundary(for: session, now: now)
         closeOpenIntervals(session, at: date)
@@ -125,15 +141,22 @@ final class StudySessionTracker {
         }
         session.endedAt = date
         session.stateRaw = SessionState.completed.rawValue
+        session.pauseReasonRaw = nil
+        session.needsSubjectConfirmation = false
+        session.confirmationExpiresAt = nil
         try commit()
         let record = snapshot(session)
         requestSync()
+        if !automatically { onUserFinished?(record) }
         return record
     }
 
     func changeSubject(to subjectID: UUID, now: Date = .now) throws {
         guard let session = activeModel else { throw SessionTrackingError.noSession }
-        guard session.subjectID != subjectID else { return }
+        guard session.subjectID != subjectID else {
+            try confirmSubject(sessionID: session.id)
+            return
+        }
         let subject = try selectedSubject(subjectID)
         let date = boundary(for: session, now: now)
         // Keep the earlier subject's time. Only the new interval uses the new subject.
@@ -144,6 +167,16 @@ final class StudySessionTracker {
             session.intervals.append(interval)
         }
         setSubject(subject, on: session)
+        session.needsSubjectConfirmation = false
+        session.confirmationExpiresAt = nil
+        try commit()
+    }
+
+    func confirmSubject(sessionID: UUID) throws {
+        guard let session = activeModel, session.id == sessionID else { return }
+        guard session.needsSubjectConfirmation else { return }
+        session.needsSubjectConfirmation = false
+        session.confirmationExpiresAt = nil
         try commit()
     }
 
@@ -196,7 +229,7 @@ final class StudySessionTracker {
         return SessionSubject(id: subject.id, name: subject.name, colorID: subject.colorID, iconID: subject.iconID)
     }
 
-    private func selectedZone(_ id: UUID?) throws -> (id: UUID, name: String)? {
+    private func selectedZone(_ id: UUID?) throws -> (id: UUID, name: String, subjectID: UUID?)? {
         guard let id else { return nil }
         let catalog = ModelContext(container)
         let userID = ownerID
@@ -204,7 +237,7 @@ final class StudySessionTracker {
             predicate: #Predicate { $0.ownerID == userID && $0.id == id && $0.isEnabled }
         ))
         guard let zone = zones.first else { throw SessionTrackingError.unavailableZone }
-        return (zone.id, zone.name)
+        return (zone.id, zone.name, zone.defaultSubject?.isActive == true ? zone.defaultSubject?.id : nil)
     }
 
     private func boundary(for session: StudySession, now: Date) -> Date {
@@ -259,7 +292,10 @@ final class StudySessionTracker {
                 SessionSpan(startedAt: $0.startedAt, endedAt: $0.endedAt,
                             subject: SessionSubject(id: $0.subjectID, name: $0.subjectName,
                                                     colorID: $0.subjectColorID, iconID: $0.subjectIconID))
-            }
+            },
+            pauseReason: session.pauseReasonRaw.flatMap(SessionPauseReason.init(rawValue:)),
+            needsSubjectConfirmation: session.needsSubjectConfirmation,
+            confirmationExpiresAt: session.confirmationExpiresAt
         )
     }
 }

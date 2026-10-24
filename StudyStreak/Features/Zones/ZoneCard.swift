@@ -1,8 +1,15 @@
 import MapKit
 import SwiftUI
 
+enum StudyZoneCardStatus: String {
+    case inactive = "Inactive", active = "Active", studying = "Studying"
+    case checking = "Checking", paused = "Paused", unavailable = "Unavailable", notMonitored = "Not monitored"
+}
+
 struct ZoneCard: View {
     let zone: StudyZone
+    var trackingStatus: StudyZoneCardStatus = .inactive
+    var weeklySeconds: TimeInterval = 0
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
@@ -11,8 +18,7 @@ struct ZoneCard: View {
             VStack(alignment: .leading, spacing: 6) {
                 nameAndStatus
                 subjectChip
-                // Session tracking will supply this total in the next milestone.
-                Text("0m studied this week")
+                Text("\(StudyTime.duration(weeklySeconds)) studied this week")
                     .font(AppTypography.caption)
                     .foregroundStyle(AppColors.secondary)
             }
@@ -41,8 +47,20 @@ struct ZoneCard: View {
     }
 
     private var status: some View {
-        // Saved/enabled does not mean the user is currently inside the zone.
-        Text("Inactive").font(AppTypography.caption).foregroundStyle(AppColors.secondary)
+        Text(trackingStatus.rawValue).font(AppTypography.caption).foregroundStyle(statusColor)
+    }
+
+    private var statusColor: Color {
+        switch trackingStatus {
+        case .active: AppColors.successText
+        case .studying: AppColors.primary
+        case .unavailable: AppColors.danger
+        default: AppColors.secondary
+        }
+    }
+
+    private var pinColor: Color {
+        trackingStatus == .active ? AppColors.success : AppColors.primary
     }
 
     private var subjectChip: some View {
@@ -74,12 +92,12 @@ struct ZoneCard: View {
             latitudinalMeters: max(600, zone.radiusMeters * 4), longitudinalMeters: max(600, zone.radiusMeters * 4))
         return Map(initialPosition: .region(region), interactionModes: []) {
             MapCircle(center: coordinate, radius: zone.radiusMeters)
-                .foregroundStyle(AppColors.primary.opacity(0.12))
+                .foregroundStyle(pinColor.opacity(0.12))
             Annotation(zone.name, coordinate: coordinate) {
                 zoneIcon
                     .foregroundStyle(AppColors.onPrimary)
                     .frame(width: 32, height: 32)
-                    .background(AppColors.primary, in: Circle())
+                    .background(pinColor, in: Circle())
             }
             .annotationTitles(.hidden)
         }

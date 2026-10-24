@@ -30,6 +30,7 @@ struct ActiveSessionView: View {
     let onFinished: (SessionRecord) -> Void
     @Environment(StudySessionTracker.self) private var tracker
     @Environment(\.dismiss) private var dismiss
+    @Environment(StudyRuntime.self) private var runtime: StudyRuntime?
     @State private var isChangingSubject = false
     @State private var errorMessage: String?
 
@@ -54,7 +55,8 @@ struct ActiveSessionView: View {
                     HStack(spacing: 8) {
                         Image("SessionLocation").resizable().scaledToFit().frame(width: 16, height: 16)
                             .foregroundStyle(AppColors.success).accessibilityHidden(true)
-                        Text("Manual session · \(session.zoneName ?? "Not in a zone")")
+                        Text(session.isAutomatic ? "Auto-started at \(session.zoneName ?? "your study zone")"
+                             : "Manual session · \(session.zoneName ?? "Not in a zone")")
                             .font(AppTypography.subheadline).foregroundStyle(AppColors.secondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
@@ -86,6 +88,7 @@ struct ActiveSessionView: View {
             }
         }
         .safeAreaInset(edge: .bottom) { controls }
+        .onChange(of: session.id) { _, _ in isChangingSubject = false; errorMessage = nil }
         .sheet(isPresented: $isChangingSubject) {
             SessionSelectionView(ownerID: tracker.ownerID, existing: session) { isChangingSubject = false }
                 .presentationDetents([.height(523), .large])
@@ -124,6 +127,8 @@ struct ActiveSessionView: View {
         VStack(spacing: 24) {
             HStack(spacing: 16) {
                 Button(isRunning ? "Pause" : "Resume", action: togglePause)
+                    .disabled(!isRunning && !canResume)
+                    .opacity(!isRunning && !canResume ? 0.5 : 1)
                     .font(AppTypography.headline).foregroundStyle(AppColors.primary)
                     .frame(maxWidth: .infinity, minHeight: 56)
                     .background(AppColors.tint, in: RoundedRectangle(cornerRadius: 16))
@@ -133,7 +138,7 @@ struct ActiveSessionView: View {
                     .background(AppColors.warm, in: RoundedRectangle(cornerRadius: 16))
             }
             .buttonStyle(.plain)
-            Text("Your progress stays saved when you return to Home.")
+            Text(resumeHint)
                 .font(AppTypography.caption).foregroundStyle(AppColors.secondary)
                 .multilineTextAlignment(.center)
         }
@@ -141,9 +146,23 @@ struct ActiveSessionView: View {
         .background(AppColors.background)
     }
 
+    private var resumeHint: String {
+        if !isRunning && !canResume {
+            if runtime?.zones.isReady != true {
+                return "Check automatic tracking in Zones, or stop and start a manual session."
+            }
+            return "Return to your zone to resume, or stop and start a manual session."
+        }
+        return session.isAutomatic ? "Your progress is saved when you leave your zone."
+            : "Your progress stays saved when you return to Home."
+    }
+
+    private var canResume: Bool { runtime?.canResume(session) ?? !session.isAutomatic }
+
     private func togglePause() {
         do {
-            if isRunning { try tracker.pause() } else { try tracker.resume() }
+            if isRunning { try tracker.pause() }
+            else if canResume { try tracker.resume() }
             errorMessage = nil
         } catch { errorMessage = SessionTrackingError.message(for: error) }
     }

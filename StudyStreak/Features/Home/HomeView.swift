@@ -4,6 +4,11 @@ import SwiftUI
 struct HomeView: View {
     let displayName: String
     @Environment(StudySessionTracker.self) private var tracker
+    @Environment(StudyRuntime.self) private var runtime: StudyRuntime?
+    @State private var isHomeVisible = false
+    @State private var automaticSheet: AutomaticSheet?
+    @State private var queuedAutomaticSheet: AutomaticSheet?
+    @State private var lastAutomaticSessionID: UUID?
     @State private var isStarting = false
     @State private var isShowingSession = false
     @State private var openAfterStart = false
@@ -19,6 +24,7 @@ struct HomeView: View {
             // Wait for the picker to close before presenting the active session.
             if openAfterStart && tracker.current != nil { isShowingSession = true }
             openAfterStart = false
+            presentAutomaticConfirmation()
         }) {
             SessionSelectionView(ownerID: tracker.ownerID) {
                 openAfterStart = true
@@ -28,10 +34,52 @@ struct HomeView: View {
             .presentationDragIndicator(.visible)
             .presentationCornerRadius(24)
         }
-        .fullScreenCover(isPresented: $isShowingSession) { SessionFlowView() }
+        .fullScreenCover(isPresented: $isShowingSession, onDismiss: presentAutomaticConfirmation) {
+            SessionFlowView()
+        }
+        .sheet(item: $automaticSheet, onDismiss: automaticSheetDismissed) { route in
+            if let current = tracker.current, current.id == route.sessionID {
+                switch route {
+                case .confirmation:
+                    AutomaticSessionConfirmationView(session: current, onConfirm: {
+                        confirm(current.id)
+                        automaticSheet = nil
+                    }, onChangeSubject: {
+                        queuedAutomaticSheet = .changeSubject(current.id)
+                        confirm(current.id)
+                        automaticSheet = nil
+                    })
+                    .presentationDetents([.height(320), .large])
+                    .presentationDragIndicator(.visible)
+                    .presentationCornerRadius(24)
+                case .changeSubject:
+                    SessionSelectionView(ownerID: tracker.ownerID, existing: current) { automaticSheet = nil }
+                        .presentationDetents([.height(523), .large])
+                        .presentationDragIndicator(.visible)
+                        .presentationCornerRadius(24)
+                }
+            }
+        }
         .onAppear {
+            isHomeVisible = true
             tracker.refreshSettings()
             tracker.requestSync()
+            updateConfirmationAvailability()
+            presentAutomaticConfirmation()
+        }
+        .onDisappear {
+            isHomeVisible = false
+            runtime?.homeCanShowConfirmation = false
+        }
+        .onChange(of: isStarting) { _, _ in updateConfirmationAvailability() }
+        .onChange(of: isShowingSession) { _, _ in updateConfirmationAvailability() }
+        .onChange(of: tracker.current) { _, current in
+            if let route = automaticSheet,
+               current?.id != route.sessionID || (route.isConfirmation && (current?.state != .running || current?.needsSubjectConfirmation != true)) {
+                queuedAutomaticSheet = nil
+                automaticSheet = nil
+            }
+            presentAutomaticConfirmation()
         }
     }
 
@@ -43,7 +91,7 @@ struct HomeView: View {
                 if let error = tracker.loadError {
                     VStack(alignment: .leading, spacing: 8) {
                         Text(error).font(AppTypography.subheadline).foregroundStyle(AppColors.secondary)
-                        Button("Try again") { tracker.reload() }
+                        Button("Try again") { tracker.reload(); runtime?.refresh() }
                             .font(AppTypography.headline).foregroundStyle(AppColors.primary)
                             .frame(minHeight: 44)
                     }
@@ -128,6 +176,7 @@ struct HomeView: View {
                 HStack(spacing: 8) {
                     SessionActivityDot(isRunning: session.state == .running)
                     Text(session.state == .paused ? "Session paused"
+                         : session.isAutomatic ? "Currently in \(session.zoneName ?? "your study zone")"
                          : session.zoneName.map { "Studying at \($0)" } ?? "Manual session")
                         .font(AppTypography.subheadline).foregroundStyle(AppColors.text)
                         .fixedSize(horizontal: false, vertical: true)
@@ -245,6 +294,50 @@ struct HomeView: View {
             .accessibilityLabel("Study time this week")
         }
         .studySessionCard()
+    }
+
+    private enum AutomaticSheet: Identifiable {
+        case confirmation(UUID), changeSubject(UUID)
+        var sessionID: UUID {
+            switch self { case .confirmation(let id), .changeSubject(let id): id }
+        }
+        var isConfirmation: Bool { if case .confirmation = self { true } else { false } }
+        var id: String { "\(sessionID.uuidString).\(isConfirmation ? "confirmation" : "picker")" }
+    }
+
+    private func updateConfirmationAvailability() {
+        runtime?.homeCanShowConfirmation = isHomeVisible && !isStarting && !isShowingSession
+    }
+
+    private func presentAutomaticConfirmation() {
+        guard isHomeVisible, !isStarting, !isShowingSession, automaticSheet == nil,
+              queuedAutomaticSheet == nil, let current = tracker.current,
+              current.isAutomatic, current.state == .running, current.needsSubjectConfirmation else { return }
+        guard let expiry = current.confirmationExpiresAt, expiry > .now else {
+            confirm(current.id)
+            return
+        }
+        lastAutomaticSessionID = current.id
+        automaticSheet = .confirmation(current.id)
+    }
+
+    private func automaticSheetDismissed() {
+        let previousID = lastAutomaticSessionID
+        lastAutomaticSessionID = nil
+        if let next = queuedAutomaticSheet {
+            queuedAutomaticSheet = nil
+            if tracker.current?.id == next.sessionID {
+                lastAutomaticSessionID = next.sessionID
+                automaticSheet = next
+            }
+        } else if let previousID, tracker.current?.id == previousID {
+            confirm(previousID)
+        }
+    }
+
+    private func confirm(_ id: UUID) {
+        if let runtime { runtime.confirm(id) }
+        else { try? tracker.confirmSubject(sessionID: id) }
     }
 
     private func greetingText(at date: Date) -> String {

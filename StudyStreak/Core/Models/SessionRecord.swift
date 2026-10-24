@@ -4,6 +4,12 @@ nonisolated enum SessionState: String, Codable, Sendable {
     case running, paused, completed
 }
 
+nonisolated enum SessionPauseReason: String, Codable, Sendable {
+    case user, zoneExit, permission, zoneUnavailable, signedOut, trackingDisabled
+}
+
+nonisolated enum SessionSource: String, Sendable { case manual, automatic }
+
 nonisolated struct SessionSubject: Equatable, Sendable {
     let id: UUID
     let name: String
@@ -33,6 +39,10 @@ nonisolated struct SessionRecord: Identifiable, Equatable, Sendable {
     let zoneName: String?
     let source: String
     let spans: [SessionSpan]
+    var pauseReason: SessionPauseReason? = nil
+    var needsSubjectConfirmation = false
+    var confirmationExpiresAt: Date? = nil
+    var isAutomatic: Bool { source == SessionSource.automatic.rawValue }
 
     func elapsed(at now: Date) -> TimeInterval {
         spans.compactMap { $0.range(at: min(endedAt ?? now, now)) }.reduce(0) { $0 + $1.duration }

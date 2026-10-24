@@ -50,6 +50,20 @@ enum ZoneStore {
         return saved
     }
 
+    static func setEnabled(_ value: Bool, for zone: StudyZone, ownerID: String, in context: ModelContext) throws {
+        guard !ownerID.isEmpty else { throw ZoneStoreError.signedOut }
+        guard zone.ownerID == ownerID else { throw ZoneStoreError.wrongOwner }
+        if value {
+            guard let subject = zone.defaultSubject, subject.ownerID == ownerID, subject.isActive else {
+                throw ZoneStoreError.unavailableSubject
+            }
+        }
+        zone.isEnabled = value
+        zone.updatedAt = .now
+        do { try context.save() }
+        catch { context.rollback(); throw error }
+    }
+
     static func delete(_ zone: StudyZone, ownerID: String, in context: ModelContext) throws {
         guard !ownerID.isEmpty else { throw ZoneStoreError.signedOut }
         guard zone.ownerID == ownerID else { throw ZoneStoreError.wrongOwner }

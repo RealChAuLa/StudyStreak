@@ -9,6 +9,10 @@ final class StudySession {
     var endedAt: Date?
     var stateRaw: String
     var sourceRaw: String
+    // Optional/default values allow existing manual sessions to migrate in place.
+    var pauseReasonRaw: String? = nil
+    var needsSubjectConfirmation: Bool = false
+    var confirmationExpiresAt: Date? = nil
     var subjectID: UUID
     var subjectName: String
     var subjectColorID: String
@@ -18,13 +22,15 @@ final class StudySession {
     @Relationship(deleteRule: .cascade, inverse: \StudyInterval.session)
     var intervals: [StudyInterval] = []
 
-    init(ownerID: String, subject: SessionSubject, zoneID: UUID?, zoneName: String?, now: Date) {
+    init(ownerID: String, subject: SessionSubject, zoneID: UUID?, zoneName: String?, now: Date, source: SessionSource = .manual) {
         id = UUID()
         self.ownerID = ownerID
         startedAt = now
         endedAt = nil
         stateRaw = SessionState.running.rawValue
-        sourceRaw = "manual"
+        sourceRaw = source.rawValue
+        needsSubjectConfirmation = source == .automatic
+        confirmationExpiresAt = source == .automatic ? now.addingTimeInterval(10) : nil
         subjectID = subject.id
         subjectName = subject.name
         subjectColorID = subject.colorID

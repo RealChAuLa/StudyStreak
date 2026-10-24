@@ -11,6 +11,7 @@ struct ZonesView: View {
 
 private struct ZoneListContent: View {
     let ownerID: String
+    @Environment(StudyRuntime.self) private var runtime: StudyRuntime?
     @Query private var zones: [StudyZone]
     @Environment(\.modelContext) private var modelContext
     @State private var isAddingZone = false
@@ -44,7 +45,7 @@ private struct ZoneListContent: View {
         } message: { zone in
             Text("“\(zone.name)” will be removed from your saved study zones.")
         }
-        .alert("Couldn’t delete zone", isPresented: Binding(
+        .alert("Couldn’t update zone", isPresented: Binding(
             get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } }
         )) {
             Button("OK", role: .cancel) { }
@@ -52,21 +53,37 @@ private struct ZoneListContent: View {
     }
 
     private var savedZones: some View {
+        TimelineView(.periodic(from: .now, by: 60)) { context in
+            savedZones(at: context.date)
+        }
+    }
+
+    private func savedZones(at date: Date) -> some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 16) {
                 Text("Your places, ready when you are.")
                     .font(AppTypography.subheadline).foregroundStyle(AppColors.secondary)
                     .padding(.bottom, 8)
                 ForEach(zones) { zone in
-                    Button { zoneToEdit = zone } label: { ZoneCard(zone: zone) }
+                    Button { zoneToEdit = zone } label: {
+                        ZoneCard(zone: zone, trackingStatus: status(for: zone),
+                                 weeklySeconds: studiedThisWeek(in: zone.id, at: date))
+                    }
                         .buttonStyle(.plain)
                         .accessibilityHint("Edit study zone. Touch and hold for more actions.")
                         .contextMenu {
                             Button("Edit Zone", systemImage: "pencil") { zoneToEdit = zone }
+                            Button(zone.isEnabled ? "Pause Automatic Tracking" : "Enable Automatic Tracking",
+                                   systemImage: zone.isEnabled ? "pause.circle" : "play.circle") {
+                                do { try ZoneStore.setEnabled(!zone.isEnabled, for: zone,
+                                                              ownerID: ownerID, in: modelContext) }
+                                catch { errorMessage = error.localizedDescription }
+                            }
                             Button("Delete Zone", systemImage: "trash", role: .destructive) { zoneToDelete = zone }
                         }
                 }
-                trackingTip
+                if let runtime { AutomaticZoneSettingsCard(runtime: runtime) }
+                else { trackingTip }
             }
             .padding(.horizontal, 24)
             .padding(.top, 8)
@@ -84,6 +101,28 @@ private struct ZoneListContent: View {
             .accessibilityLabel("Add study zone")
             .padding(.trailing, 32).padding(.bottom, 16)
         }
+    }
+
+    private func status(for zone: StudyZone) -> StudyZoneCardStatus {
+        guard zone.isEnabled else { return .paused }
+        guard let runtime else { return .inactive }
+        let monitor = runtime.zones
+        if !monitor.isEnabled { return .paused }
+        if monitor.monitoringErrors[zone.id] != nil { return .unavailable }
+        guard monitor.monitoredZoneIDs.contains(zone.id) else { return .notMonitored }
+        switch monitor.presence[zone.id] ?? .unknown {
+        case .inside:
+            return runtime.tracker?.current?.zoneID == zone.id && runtime.tracker?.current?.state == .running
+                ? .studying : .active
+        case .outside: return .inactive
+        case .unknown: return .checking
+        }
+    }
+
+    private func studiedThisWeek(in zoneID: UUID, at date: Date) -> TimeInterval {
+        guard let tracker = runtime?.tracker else { return 0 }
+        let records = (tracker.history + (tracker.current.map { [$0] } ?? [])).filter { $0.zoneID == zoneID }
+        return SessionAnalytics.dashboard(records: records, now: date, goal: tracker.settings.goal(on:)).weekSeconds
     }
 
     private var trackingTip: some View {
