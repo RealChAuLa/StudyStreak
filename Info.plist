@@ -31,9 +31,12 @@
 			<array>
 				<string>studystreak</string>
 			</array>
+			
 		</dict>
 	</array>
 	<key>StudyStreakAppGroup</key>
 	<string>$(STUDYSTREAK_APP_GROUP)</string>
+<key>StudyStreakAppGroup</key>
+<string>group.realchaula.StudyStreak</string>
 </dict>
 </plist>

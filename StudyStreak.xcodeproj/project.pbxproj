@@ -12,151 +12,97 @@
 		D7C6B371308775C3008802D0 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = D7C6B370308775C3008802D0 /* FirebaseAuth */; };
 		D7C6B373308775C3008802D0 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = D7C6B372308775C3008802D0 /* FirebaseCore */; };
 		D7C6B375308775C3008802D0 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = D7C6B374308775C3008802D0 /* FirebaseFirestore */; };
-		B9D00000000000000000000A /* StudyStreakWidget.appex in Embed App Extensions */ = {
-			isa = PBXBuildFile;
-			fileRef = B9D000000000000000000002 /* StudyStreakWidget.appex */;
-			settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); };
-		};
-		B9D000000000000000000016 /* AppColors.swift in Sources */ = {
-			isa = PBXBuildFile;
-			fileRef = B9D000000000000000000011 /* AppColors.swift */;
-		};
-		B9D000000000000000000017 /* AppTypography.swift in Sources */ = {
-			isa = PBXBuildFile;
-			fileRef = B9D000000000000000000012 /* AppTypography.swift */;
-		};
-		B9D000000000000000000018 /* GoogleSans-Regular.ttf in Resources */ = {
-			isa = PBXBuildFile;
-			fileRef = B9D000000000000000000013 /* GoogleSans-Regular.ttf */;
-		};
-		B9D000000000000000000019 /* GoogleSans-SemiBold.ttf in Resources */ = {
-			isa = PBXBuildFile;
-			fileRef = B9D000000000000000000014 /* GoogleSans-SemiBold.ttf */;
-		};
-		B9D00000000000000000001A /* GoogleSans-Bold.ttf in Resources */ = {
-			isa = PBXBuildFile;
-			fileRef = B9D000000000000000000015 /* GoogleSans-Bold.ttf */;
-		};
+		D7C6B478308F1CCE008802D0 /* StudyProgress.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7C6B475308F1CCE008802D0 /* StudyProgress.swift */; };
+		D7C6B479308F1CCE008802D0 /* WidgetProgress.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7C6B476308F1CCE008802D0 /* WidgetProgress.swift */; };
+		D7C6B481308F1DD8008802D0 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D7C6B480308F1DD8008802D0 /* WidgetKit.framework */; };
+		D7C6B483308F1DD8008802D0 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D7C6B482308F1DD8008802D0 /* SwiftUI.framework */; };
+		D7C6B494308F1DDB008802D0 /* StudyStreakWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D7C6B47E308F1DD8008802D0 /* StudyStreakWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		D7C6B4A1308F1F01008802D0 /* StudyProgress.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7C6B475308F1CCE008802D0 /* StudyProgress.swift */; };
+		D7C6B4A2308F1F0D008802D0 /* WidgetProgress.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7C6B476308F1CCE008802D0 /* WidgetProgress.swift */; };
 /* End PBXBuildFile section */
 
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		B9D000000000000000000005 /* Exceptions for StudyStreakWidget folder in StudyStreakWidget target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Info.plist,
-				StudyStreakWidget.entitlements,
-			);
-			target = B9D000000000000000000001 /* StudyStreakWidget */;
+/* Begin PBXContainerItemProxy section */
+		D7C6B492308F1DDB008802D0 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D7E53CCF30821A2A0073B792 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D7C6B47D308F1DD8008802D0;
+			remoteInfo = StudyStreakWidgetExtension;
 		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		B9D000000000000000000009 /* Embed App Extensions */ = {
+		D7C6B499308F1DDB008802D0 /* Embed Foundation Extensions */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
-				B9D00000000000000000000A /* StudyStreakWidget.appex in Embed App Extensions */,
+				D7C6B494308F1DDB008802D0 /* StudyStreakWidgetExtension.appex in Embed Foundation Extensions */,
 			);
-			name = "Embed App Extensions";
+			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
 
-/* Begin PBXContainerItemProxy section */
-		B9D00000000000000000000B /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = D7E53CCF30821A2A0073B792 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = B9D000000000000000000001;
-			remoteInfo = StudyStreakWidget;
-		};
-/* End PBXContainerItemProxy section */
-
-/* Begin PBXTargetDependency section */
-		B9D00000000000000000000C /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = B9D000000000000000000001 /* StudyStreakWidget */;
-			targetProxy = B9D00000000000000000000B /* PBXContainerItemProxy */;
-		};
-/* End PBXTargetDependency section */
-
 /* Begin PBXFileReference section */
 		A18E10100000000000000003 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		D7C6B475308F1CCE008802D0 /* StudyProgress.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudyProgress.swift; sourceTree = "<group>"; };
+		D7C6B476308F1CCE008802D0 /* WidgetProgress.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetProgress.swift; sourceTree = "<group>"; usesTabs = 0; };
+		D7C6B47E308F1DD8008802D0 /* StudyStreakWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = StudyStreakWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		D7C6B480308F1DD8008802D0 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		D7C6B482308F1DD8008802D0 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		D7E53CD730821A2A0073B792 /* StudyStreak.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = StudyStreak.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		B9D000000000000000000002 /* StudyStreakWidget.appex */ = {
-			isa = PBXFileReference;
-			explicitFileType = "wrapper.app-extension";
-			includeInIndex = 0;
-			path = StudyStreakWidget.appex;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		B9D00000000000000000001B /* StudyStreak.entitlements */ = {
-			isa = PBXFileReference;
-			lastKnownFileType = text.plist.entitlements;
-			path = StudyStreak.entitlements;
-			sourceTree = "<group>";
-		};
-		B9D000000000000000000011 /* AppColors.swift */ = {
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.swift;
-			name = AppColors.swift;
-			path = StudyStreak/DesignSystem/AppColors.swift;
-			sourceTree = SOURCE_ROOT;
-		};
-		B9D000000000000000000012 /* AppTypography.swift */ = {
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.swift;
-			name = AppTypography.swift;
-			path = StudyStreak/DesignSystem/AppTypography.swift;
-			sourceTree = SOURCE_ROOT;
-		};
-		B9D000000000000000000013 /* GoogleSans-Regular.ttf */ = {
-			isa = PBXFileReference;
-			lastKnownFileType = file;
-			name = GoogleSans-Regular.ttf;
-			path = StudyStreak/Resources/Fonts/GoogleSans-Regular.ttf;
-			sourceTree = SOURCE_ROOT;
-		};
-		B9D000000000000000000014 /* GoogleSans-SemiBold.ttf */ = {
-			isa = PBXFileReference;
-			lastKnownFileType = file;
-			name = GoogleSans-SemiBold.ttf;
-			path = StudyStreak/Resources/Fonts/GoogleSans-SemiBold.ttf;
-			sourceTree = SOURCE_ROOT;
-		};
-		B9D000000000000000000015 /* GoogleSans-Bold.ttf */ = {
-			isa = PBXFileReference;
-			lastKnownFileType = file;
-			name = GoogleSans-Bold.ttf;
-			path = StudyStreak/Resources/Fonts/GoogleSans-Bold.ttf;
-			sourceTree = SOURCE_ROOT;
-		};
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedRootGroup section */
-		D7E53CD930821A2A0073B792 /* StudyStreak */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = StudyStreak;
-			sourceTree = "<group>";
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		D7C6B495308F1DDB008802D0 /* Exceptions for "StudyStreakWidget" folder in "StudyStreakWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+				StudyStreakWidgetBundle.swift,
+			);
+			target = D7C6B47D308F1DD8008802D0 /* StudyStreakWidgetExtension */;
 		};
-		B9D000000000000000000003 /* StudyStreakWidget */ = {
+		D7C6B4A4308F1FBE008802D0 /* Exceptions for "StudyStreak" folder in "StudyStreakWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				DesignSystem/AppColors.swift,
+				DesignSystem/AppTypography.swift,
+			);
+			target = D7C6B47D308F1DD8008802D0 /* StudyStreakWidgetExtension */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		D7C6B484308F1DD8008802D0 /* StudyStreakWidget */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				B9D000000000000000000005 /* Exceptions for StudyStreakWidget folder in StudyStreakWidget target */,
+				D7C6B495308F1DDB008802D0 /* Exceptions for "StudyStreakWidget" folder in "StudyStreakWidgetExtension" target */,
 			);
 			path = StudyStreakWidget;
 			sourceTree = "<group>";
 		};
-		B9D000000000000000000004 /* Shared */ = {
+		D7E53CD930821A2A0073B792 /* StudyStreak */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Shared;
+			exceptions = (
+				D7C6B4A4308F1FBE008802D0 /* Exceptions for "StudyStreak" folder in "StudyStreakWidgetExtension" target */,
+			);
+			path = StudyStreak;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		D7C6B47B308F1DD8008802D0 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D7C6B483308F1DD8008802D0 /* SwiftUI.framework in Frameworks */,
+				D7C6B481308F1DD8008802D0 /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		D7E53CD430821A2A0073B792 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -168,24 +114,36 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		B9D000000000000000000008 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = ();
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		D7C6B477308F1CCE008802D0 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				D7C6B475308F1CCE008802D0 /* StudyProgress.swift */,
+				D7C6B476308F1CCE008802D0 /* WidgetProgress.swift */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+			usesTabs = 0;
+		};
+		D7C6B47F308F1DD8008802D0 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				D7C6B480308F1DD8008802D0 /* WidgetKit.framework */,
+				D7C6B482308F1DD8008802D0 /* SwiftUI.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		D7E53CCE30821A2A0073B792 = {
 			isa = PBXGroup;
 			children = (
+				D7C6B477308F1CCE008802D0 /* Shared */,
 				A18E10100000000000000003 /* GoogleService-Info.plist */,
 				D7E53CD930821A2A0073B792 /* StudyStreak */,
-				B9D000000000000000000004 /* Shared */,
-				B9D000000000000000000003 /* StudyStreakWidget */,
-				B9D000000000000000000010 /* Widget Shared Resources */,
-				B9D00000000000000000001B /* StudyStreak.entitlements */,
+				D7C6B484308F1DD8008802D0 /* StudyStreakWidget */,
+				D7C6B47F308F1DD8008802D0 /* Frameworks */,
 				D7E53CD830821A2A0073B792 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -194,26 +152,36 @@
 			isa = PBXGroup;
 			children = (
 				D7E53CD730821A2A0073B792 /* StudyStreak.app */,
-				B9D000000000000000000002 /* StudyStreakWidget.appex */,
+				D7C6B47E308F1DD8008802D0 /* StudyStreakWidgetExtension.appex */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		B9D000000000000000000010 /* Widget Shared Resources */ = {
-			isa = PBXGroup;
-			children = (
-				B9D000000000000000000011 /* AppColors.swift */,
-				B9D000000000000000000012 /* AppTypography.swift */,
-				B9D000000000000000000013 /* GoogleSans-Regular.ttf */,
-				B9D000000000000000000014 /* GoogleSans-SemiBold.ttf */,
-				B9D000000000000000000015 /* GoogleSans-Bold.ttf */,
-			);
-			name = "Widget Shared Resources";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		D7C6B47D308F1DD8008802D0 /* StudyStreakWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D7C6B496308F1DDB008802D0 /* Build configuration list for PBXNativeTarget "StudyStreakWidgetExtension" */;
+			buildPhases = (
+				D7C6B47A308F1DD8008802D0 /* Sources */,
+				D7C6B47B308F1DD8008802D0 /* Frameworks */,
+				D7C6B47C308F1DD8008802D0 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				D7C6B484308F1DD8008802D0 /* StudyStreakWidget */,
+			);
+			name = StudyStreakWidgetExtension;
+			packageProductDependencies = (
+			);
+			productName = StudyStreakWidgetExtension;
+			productReference = D7C6B47E308F1DD8008802D0 /* StudyStreakWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		D7E53CD630821A2A0073B792 /* StudyStreak */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = D7E53CE430821A2D0073B792 /* Build configuration list for PBXNativeTarget "StudyStreak" */;
@@ -221,16 +189,15 @@
 				D7E53CD330821A2A0073B792 /* Sources */,
 				D7E53CD430821A2A0073B792 /* Frameworks */,
 				D7E53CD530821A2A0073B792 /* Resources */,
-				B9D000000000000000000009 /* Embed App Extensions */,
+				D7C6B499308F1DDB008802D0 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				B9D00000000000000000000C /* PBXTargetDependency */,
+				D7C6B493308F1DDB008802D0 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				D7E53CD930821A2A0073B792 /* StudyStreak */,
-				B9D000000000000000000004 /* Shared */,
 			);
 			name = StudyStreak;
 			packageProductDependencies = (
@@ -243,26 +210,6 @@
 			productReference = D7E53CD730821A2A0073B792 /* StudyStreak.app */;
 			productType = "com.apple.product-type.application";
 		};
-		B9D000000000000000000001 /* StudyStreakWidget */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = B9D00000000000000000000F /* Build configuration list for PBXNativeTarget "StudyStreakWidget" */;
-			buildPhases = (
-				B9D000000000000000000006 /* Sources */,
-				B9D000000000000000000008 /* Frameworks */,
-				B9D000000000000000000007 /* Resources */,
-			);
-			buildRules = ();
-			dependencies = ();
-			fileSystemSynchronizedGroups = (
-				B9D000000000000000000003 /* StudyStreakWidget */,
-				B9D000000000000000000004 /* Shared */,
-			);
-			name = StudyStreakWidget;
-			packageProductDependencies = ();
-			productName = StudyStreakWidget;
-			productReference = B9D000000000000000000002 /* StudyStreakWidget.appex */;
-			productType = "com.apple.product-type.app-extension";
-		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -273,17 +220,11 @@
 				LastSwiftUpdateCheck = 2620;
 				LastUpgradeCheck = 2620;
 				TargetAttributes = {
+					D7C6B47D308F1DD8008802D0 = {
+						CreatedOnToolsVersion = 26.2;
+					};
 					D7E53CD630821A2A0073B792 = {
 						CreatedOnToolsVersion = 26.2;
-						SystemCapabilities = {
-							com.apple.ApplicationGroups.iOS = {enabled = 1; };
-						};
-					};
-					B9D000000000000000000001 = {
-						CreatedOnToolsVersion = 26.2;
-						SystemCapabilities = {
-							com.apple.ApplicationGroups.iOS = {enabled = 1; };
-						};
 					};
 				};
 			};
@@ -306,12 +247,19 @@
 			projectRoot = "";
 			targets = (
 				D7E53CD630821A2A0073B792 /* StudyStreak */,
-				B9D000000000000000000001 /* StudyStreakWidget */,
+				D7C6B47D308F1DD8008802D0 /* StudyStreakWidgetExtension */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		D7C6B47C308F1DD8008802D0 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		D7E53CD530821A2A0073B792 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -320,42 +268,105 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		B9D000000000000000000007 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				B9D000000000000000000018 /* GoogleSans-Regular.ttf in Resources */,
-				B9D000000000000000000019 /* GoogleSans-SemiBold.ttf in Resources */,
-				B9D00000000000000000001A /* GoogleSans-Bold.ttf in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		D7C6B47A308F1DD8008802D0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D7C6B4A1308F1F01008802D0 /* StudyProgress.swift in Sources */,
+				D7C6B4A2308F1F0D008802D0 /* WidgetProgress.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		D7E53CD330821A2A0073B792 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		B9D000000000000000000006 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				B9D000000000000000000016 /* AppColors.swift in Sources */,
-				B9D000000000000000000017 /* AppTypography.swift in Sources */,
+				D7C6B478308F1CCE008802D0 /* StudyProgress.swift in Sources */,
+				D7C6B479308F1CCE008802D0 /* WidgetProgress.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		D7C6B493308F1DDB008802D0 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D7C6B47D308F1DD8008802D0 /* StudyStreakWidgetExtension */;
+			targetProxy = D7C6B492308F1DDB008802D0 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		D7C6B497308F1DDB008802D0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				"CODE_SIGN_ENTITLEMENTS[sdk=*]" = StudyStreakWidget/StudyStreakWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = Q7JFF5XKUH;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = StudyStreakWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = StudyStreakWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.6;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = realchaula.StudyStreak.StudyStreakWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		D7C6B498308F1DDB008802D0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				"CODE_SIGN_ENTITLEMENTS[sdk=*]" = StudyStreakWidget/StudyStreakWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = Q7JFF5XKUH;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = StudyStreakWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = StudyStreakWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.6;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = realchaula.StudyStreak.StudyStreakWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 		D7E53CE230821A2D0073B792 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				STUDYSTREAK_APP_GROUP = group.realchaula.StudyStreak;
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -420,7 +431,6 @@
 		D7E53CE330821A2D0073B792 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				STUDYSTREAK_APP_GROUP = group.realchaula.StudyStreak;
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -478,9 +488,9 @@
 		D7E53CE530821A2D0073B792 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_ENTITLEMENTS = StudyStreak.entitlements;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				"CODE_SIGN_ENTITLEMENTS[sdk=*]" = StudyStreak.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = Q7JFF5XKUH;
@@ -498,6 +508,8 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
+				NEW_SETTING = "";
+				NEW_SETTING1 = "";
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -517,9 +529,9 @@
 		D7E53CE630821A2D0073B792 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_ENTITLEMENTS = StudyStreak.entitlements;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				"CODE_SIGN_ENTITLEMENTS[sdk=*]" = StudyStreak.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = Q7JFF5XKUH;
@@ -537,6 +549,8 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
+				NEW_SETTING = "";
+				NEW_SETTING1 = "";
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -553,73 +567,18 @@
 			};
 			name = Release;
 		};
-		B9D00000000000000000000D /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				APPLICATION_EXTENSION_API_ONLY = YES;
-				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
-				CODE_SIGN_ENTITLEMENTS = StudyStreakWidget/StudyStreakWidget.entitlements;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = Q7JFF5XKUH;
-				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = StudyStreakWidget/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.6;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@executable_path/../../Frameworks",
-				);
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = realchaula.StudyStreak.widget;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SKIP_INSTALL = YES;
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Debug;
-		};
-		B9D00000000000000000000E /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				APPLICATION_EXTENSION_API_ONLY = YES;
-				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
-				CODE_SIGN_ENTITLEMENTS = StudyStreakWidget/StudyStreakWidget.entitlements;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = Q7JFF5XKUH;
-				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = StudyStreakWidget/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@executable_path/../../Frameworks",
-				);
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = realchaula.StudyStreak.widget;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SKIP_INSTALL = YES;
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Release;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		D7C6B496308F1DDB008802D0 /* Build configuration list for PBXNativeTarget "StudyStreakWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D7C6B497308F1DDB008802D0 /* Debug */,
+				D7C6B498308F1DDB008802D0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		D7E53CD230821A2A0073B792 /* Build configuration list for PBXProject "StudyStreak" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -634,15 +593,6 @@
 			buildConfigurations = (
 				D7E53CE530821A2D0073B792 /* Debug */,
 				D7E53CE630821A2D0073B792 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		B9D00000000000000000000F /* Build configuration list for PBXNativeTarget "StudyStreakWidget" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				B9D00000000000000000000D /* Debug */,
-				B9D00000000000000000000E /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
