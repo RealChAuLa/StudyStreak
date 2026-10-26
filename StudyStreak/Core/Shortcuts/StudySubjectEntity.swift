@@ -2,7 +2,7 @@ import AppIntents
 import Foundation
 
 // A lightweight subject value Siri can display. The owner is part of its stable ID.
-nonisolated struct StudySubjectEntity: AppEntity {
+struct StudySubjectEntity: AppEntity {
     static let typeDisplayRepresentation = TypeDisplayRepresentation(name: "Study subject")
     static let defaultQuery = StudySubjectQuery()
 

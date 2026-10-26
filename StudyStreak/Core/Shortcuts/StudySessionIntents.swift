@@ -1,7 +1,7 @@
 import AppIntents
 import Foundation
 
-nonisolated struct StartStudySessionIntent: AppIntent {
+struct StartStudySessionIntent: AppIntent {
     static let title: LocalizedStringResource = "Start Study Session"
     static let description = IntentDescription("Start studying a subject, or resume your paused session.")
     static let openAppWhenRun = true
@@ -57,7 +57,7 @@ nonisolated struct StartStudySessionIntent: AppIntent {
     }
 }
 
-nonisolated struct StopStudySessionIntent: AppIntent {
+struct StopStudySessionIntent: AppIntent {
     static let title: LocalizedStringResource = "Stop Study Session"
     static let description = IntentDescription("Finish and save your current study session, including a paused session.")
     static let openAppWhenRun = true
