@@ -97,7 +97,7 @@ nonisolated enum StatsAnalytics {
                            zoneID: segment.zoneID, zoneName: segment.zoneName, range: clipped)
         }
         let total = seconds(in: interval, ranges: ranges)
-        let elapsedDays = max(1, (calendar.dateComponents(.day, from: interval.start, to: today).day ?? 0) + 1)
+        let elapsedDays = max(1, (calendar.dateComponents([.day], from: interval.start, to: today).day ?? 0) + 1)
 
         // Compare the same local point in the preceding period, not a partial week against a full week.
         let previousDate = calendar.date(byAdding: period.component, value: -1, to: now) ?? now

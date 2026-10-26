@@ -38,6 +38,7 @@ final class StudySessionTracker {
     @ObservationIgnored private var syncTask: Task<Void, Never>?
     @ObservationIgnored private var needsSync = false
     @ObservationIgnored var onUserFinished: (@MainActor (SessionRecord) -> Void)?
+    @ObservationIgnored var onProgressChanged: (@MainActor () -> Void)?
 
 
     init(container: ModelContainer, ownerID: String) {
@@ -69,14 +70,28 @@ final class StudySessionTracker {
             history = []
             loadError = SessionTrackingError.unreadableStore.localizedDescription
         }
+        onProgressChanged?()
     }
 
     func refreshSettings() {
         settings = RoutinePreferences(ownerID: ownerID).settings
+        onProgressChanged?()
     }
 
     func metrics(at now: Date) -> HomeStudyMetrics {
         SessionAnalytics.dashboard(records: allRecords, now: now, goal: settings.goal(on:))
+    }
+
+    func widgetSnapshot(at now: Date) -> WidgetProgressSnapshot {
+        guard loadError == nil else { return .empty(.unavailable, now: now) }
+        let ranges = SessionAnalytics.mergedRanges(records: allRecords, now: now, includeOpenIntervals: false)
+        let running: Date? = current?.state == .running
+            ? current?.spans.filter { $0.endedAt == nil }.map(\.startedAt).min() : nil
+        return WidgetProgressSnapshot(
+            version: WidgetProgressSnapshot.currentVersion, state: .available, generatedAt: now,
+            ranges: ranges.map { WidgetStudyRange(start: $0.start, end: $0.end) }, runningSince: running,
+            goals: settings.goals.map { WidgetGoalChange(effectiveFrom: $0.effectiveFrom, minutes: $0.minutes) }
+        )
     }
 
     func start(subjectID: UUID, zoneID: UUID?, now: Date = .now, source: SessionSource = .manual) throws {
@@ -256,6 +271,7 @@ final class StudySessionTracker {
             try context.save()
             if let session { models.insert(session, at: 0) }
             refreshRecords()
+            onProgressChanged?()
         } catch {
             context.rollback()
             reload()

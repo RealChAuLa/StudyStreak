@@ -52,6 +52,7 @@ struct StudyStreakApp: App {
             .preferredColorScheme((AppAppearance(rawValue: appearance) ?? .system).colorScheme)
             .onChange(of: scenePhase) { _, phase in
                 if phase == .active { runtime.refresh() }
+                else if phase == .background { runtime.publishWidgetProgress(forceReload: true) }
             }
             .onReceive(NotificationCenter.default.publisher(for: ModelContext.didSave)) { _ in
                 runtime.refreshCatalog()
@@ -62,7 +63,10 @@ struct StudyStreakApp: App {
             .onReceive(NotificationCenter.default.publisher(for: UserDefaults.didChangeNotification)) { _ in
                 runtime.tracker?.refreshSettings()
             }
-            .onOpenURL { url in _ = GIDSignIn.sharedInstance.handle(url) }
+            .onOpenURL { url in
+                if StudyWidgetConfiguration.opensHome(url) { runtime.openHome() }
+                else { _ = GIDSignIn.sharedInstance.handle(url) }
+            }
         }
     }
 }

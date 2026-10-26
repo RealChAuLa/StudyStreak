@@ -24,6 +24,16 @@
 				<string>com.googleusercontent.apps.780068511637-nkbe7ottsqmaqp7qbh8tpc5td26f4hrb</string>
 			</array>
 		</dict>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>realchaula.StudyStreak.home</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>studystreak</string>
+			</array>
+		</dict>
 	</array>
+	<key>StudyStreakAppGroup</key>
+	<string>$(STUDYSTREAK_APP_GROUP)</string>
 </dict>
 </plist>

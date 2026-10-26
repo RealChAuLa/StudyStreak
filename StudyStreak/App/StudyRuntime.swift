@@ -10,6 +10,8 @@ final class StudyRuntime {
     static let shared = StudyRuntime()
     let zones = StudyZoneMonitoringService()
     let notifications = AutomaticSessionNotifications()
+    let widgets = StudyWidgetPublisher()
+    var homeNavigationRequest = UUID()
     private(set) var tracker: StudySessionTracker?
     private(set) var automationError: String?
     var homeCanShowConfirmation = false
@@ -27,7 +29,7 @@ final class StudyRuntime {
         self.container = container
         self.account = account
         notifications.registerActions()
-        guard FirebaseApp.app() != nil else { zones.stop(); return }
+        guard FirebaseApp.app() != nil else { zones.stop(); widgets.clear(); return }
         account.onStudyUserChanged = { [weak self] userID in self?.activate(userID) }
         if FirebaseApp.app() != nil, let uid = Auth.auth().currentUser?.uid {
             activate(uid)
@@ -50,6 +52,7 @@ final class StudyRuntime {
             notifications.cancelAll(ownerID: oldOwner)
             definitions = []
             tracker = nil
+            widgets.clear()
             return
         }
         if tracker?.ownerID != userID {
@@ -58,12 +61,15 @@ final class StudyRuntime {
                 zones.stop()
                 notifications.cancelAll(ownerID: old.ownerID)
             }
+            widgets.clear()
             definitions = []
             automationError = nil
             tracker = StudySessionTracker(container: container, ownerID: userID)
         }
         guard let tracker else { return }
         let ownerID = tracker.ownerID
+        tracker.onProgressChanged = { [weak self] in self?.publishWidgetProgress() }
+        publishWidgetProgress()
         tracker.onUserFinished = { [weak self] record in
             guard let self, self.tracker?.ownerID == ownerID else { return }
             // Unknown overlapping regions may report Inside after Stop; hold those
@@ -115,6 +121,13 @@ final class StudyRuntime {
         tracker?.refreshSettings()
         tracker?.requestSync()
         refreshCatalog(requestStates: true)
+    }
+
+    func openHome() { homeNavigationRequest = UUID() }
+
+    func publishWidgetProgress(forceReload: Bool = false) {
+        guard let tracker, FirebaseApp.app() != nil, Auth.auth().currentUser?.uid == tracker.ownerID else { return }
+        widgets.publish(tracker, forceReload: forceReload)
     }
 
     func canResume(_ session: SessionRecord) -> Bool {
