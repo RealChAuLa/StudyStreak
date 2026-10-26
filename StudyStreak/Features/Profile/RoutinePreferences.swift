@@ -1,12 +1,12 @@
 import Foundation
 import Observation
 
-nonisolated struct DailyGoalChange: Codable {
+nonisolated struct DailyGoalChange: Codable, Equatable, Sendable {
     let effectiveFrom: Date
     let minutes: Int
 }
 
-nonisolated struct RoutineSettings: Codable {
+nonisolated struct RoutineSettings: Codable, Equatable, Sendable {
     var goals: [DailyGoalChange] = []
     var notificationsEnabled = true
     var streakAlerts = true

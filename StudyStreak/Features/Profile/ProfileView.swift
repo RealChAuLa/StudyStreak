@@ -1,49 +1,70 @@
+import Foundation
 import SwiftData
 import SwiftUI
 
 struct ProfileView: View {
     @Environment(AppSession.self) private var session
+    @Environment(StudySessionTracker.self) private var tracker
     @State private var errorMessage: String?
     @State private var errorTitle = "Couldn’t load profile"
     @State private var isEditingProfile = false
+    @State private var isDeletingAccount = false
 
     var body: some View {
-        ProfileContent(profile: session.profile, onSignOut: {
-            do { try session.signOut() }
-            catch { errorTitle = "Couldn’t log out"; errorMessage = AccountError.message(for: error) }
-        }, onEditProfile: { isEditingProfile = true })
-            .task(id: session.uid) {
-                // Refresh photos from the server while retaining the cached profile offline.
-                guard session.uid != nil else { return }
-                try? await session.refreshProfile()
+        TimelineView(.periodic(from: .now, by: 60)) { context in
+            ProfileContent(
+                profile: session.profile,
+                allTimeSeconds: tracker.loadError == nil ? tracker.totalSeconds(at: context.date) : nil,
+                onSignOut: {
+                    do {
+                        try session.signOut()
+                    } catch {
+                        errorTitle = "Couldn’t log out"
+                        errorMessage = AccountError.message(for: error)
+                    }
+                },
+                onEditProfile: { isEditingProfile = true },
+                onDeleteAccount: { isDeletingAccount = true }
+            )
+        }
+        .task(id: session.uid) {
+            // Refresh photos from the server while retaining the cached profile offline.
+            guard session.uid != nil else { return }
+            try? await session.refreshProfile()
+        }
+        .refreshable {
+            tracker.reload()
+            do { try await session.refreshProfile() }
+            catch { errorTitle = "Couldn’t refresh profile"; errorMessage = AccountError.message(for: error) }
+        }
+        .sheet(isPresented: $isEditingProfile) {
+            if let profile = session.profile {
+                EditProfileView(profile: profile)
+                    .presentationDetents([.height(660), .large])
+                    .presentationDragIndicator(.visible)
+                    .presentationCornerRadius(24)
             }
-            .refreshable {
-                do { try await session.refreshProfile() }
-                catch { errorTitle = "Couldn’t refresh profile"; errorMessage = AccountError.message(for: error) }
-            }
-            .sheet(isPresented: $isEditingProfile) {
-                if let profile = session.profile {
-                    EditProfileView(profile: profile)
-                        .presentationDetents([.height(660), .large])
-                        .presentationDragIndicator(.visible)
-                        .presentationCornerRadius(24)
-                }
-            }
-            .alert(errorTitle, isPresented: Binding(
-                get: { errorMessage != nil },
-                set: { if !$0 { errorMessage = nil } }
-            )) {
-                Button("OK", role: .cancel) { }
-            } message: {
-                Text(errorMessage ?? "Please try again.")
-            }
+        }
+        .sheet(isPresented: $isDeletingAccount) {
+            DeleteAccountView()
+        }
+        .alert(errorTitle, isPresented: Binding(
+            get: { errorMessage != nil },
+            set: { if !$0 { errorMessage = nil } }
+        )) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(errorMessage ?? "Please try again.")
+        }
     }
 }
 
 private struct ProfileContent: View {
     let profile: UserProfile?
+    var allTimeSeconds: TimeInterval? = 0
     let onSignOut: () -> Void
     var onEditProfile: () -> Void = { }
+    var onDeleteAccount: (() -> Void)? = nil
     @Environment(\.studyUserID) private var ownerID
     @AppStorage(AppAppearance.storageKey) private var appearance = AppAppearance.system.rawValue
 
@@ -92,10 +113,6 @@ private struct ProfileContent: View {
                 }
                 .profileCard()
 
-                Text("More profile settings are coming soon.")
-                    .font(AppTypography.caption)
-                    .foregroundStyle(AppColors.secondary)
-
                 Button(role: .destructive, action: onSignOut) {
                     Text("Sign Out")
                         .font(AppTypography.headline)
@@ -105,6 +122,14 @@ private struct ProfileContent: View {
                         .contentShape(RoundedRectangle(cornerRadius: 16))
                 }
                 .buttonStyle(.plain)
+
+                Button(role: .destructive) { onDeleteAccount?() } label: {
+                    Text("Delete Account").font(AppTypography.headline)
+                        .foregroundStyle(AppColors.danger)
+                        .frame(maxWidth: .infinity, minHeight: 56)
+                        .background(AppColors.surface, in: RoundedRectangle(cornerRadius: 16))
+                }
+                .buttonStyle(.plain).disabled(profile == nil || onDeleteAccount == nil)
 
                 Text("StudyStreak · A little focus, every day.")
                     .font(AppTypography.caption)
@@ -141,8 +166,7 @@ private struct ProfileContent: View {
             }
             Divider().overlay(AppColors.border)
             HStack(spacing: 16) {
-                // Session totals will be supplied by SwiftData in a later milestone.
-                Text("—")
+                Text(allTimeSeconds.map(StudyTime.duration) ?? "Unavailable")
                     .font(AppTypography.title2)
                     .foregroundStyle(AppColors.text)
                 Spacer(minLength: 0)
@@ -151,7 +175,8 @@ private struct ProfileContent: View {
                     .foregroundStyle(AppColors.secondary)
             }
             .accessibilityElement(children: .ignore)
-            .accessibilityLabel("All-time focus is not available yet")
+            .accessibilityLabel(allTimeSeconds.map { "\(StudyTime.duration($0)) of all-time focus" }
+                                ?? "Couldn’t load all-time focus")
         }
         .profileCard()
     }
@@ -161,17 +186,6 @@ private struct ProfileContent: View {
             .font(AppTypography.caption.weight(.semibold))
             .foregroundStyle(AppColors.secondary)
             .accessibilityAddTraits(.isHeader)
-    }
-
-    private func unavailableRow(_ title: String, icon: String, value: String? = nil) -> some View {
-        Button {
-            // TODO: Connect this setting when its feature is implemented.
-        } label: {
-            settingsRow(title, icon: icon, value: value)
-        }
-        .buttonStyle(.plain)
-        .disabled(true)
-        .accessibilityHint("Coming soon")
     }
 
     private func settingsRow(_ title: String, icon: String, value: String? = nil) -> some View {

@@ -36,6 +36,8 @@ struct ContentView: View {
                 }
             case .profileError:
                 accountRecovery
+            case .accountDeletion:
+                DeleteAccountView(isRecovery: true)
             case .notConfigured:
                 ContentUnavailableView("Unable to Start StudyStreak", systemImage: "exclamationmark.triangle", description: Text("something went wrong, please try again"))
             }

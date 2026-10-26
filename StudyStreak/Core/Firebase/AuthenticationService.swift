@@ -20,6 +20,37 @@ final class AuthenticationService {
     }
 
     func signInWithGoogle() async throws {
+        let credential = try await googleCredential()
+        _ = try await auth.signIn(with: credential)
+    }
+
+    var deletionMethods: [AccountDeletionMethod] {
+        let providers = Set(auth.currentUser?.providerData.map(\.providerID) ?? [])
+        return AccountDeletionMethod.allCases.filter {
+            providers.contains($0 == .password ? "password" : "google.com")
+        }
+    }
+
+    func reauthenticateForDeletion(method: AccountDeletionMethod, password: String) async throws {
+        guard let user = auth.currentUser, deletionMethods.contains(method) else {
+            throw AccountDeletionError.unavailableVerification
+        }
+        let credential: AuthCredential
+        switch method {
+        case .password:
+            guard let email = user.email, !password.isEmpty else {
+                throw AccountDeletionError.unavailableVerification
+            }
+            credential = EmailAuthProvider.credential(withEmail: email, password: password)
+        case .google:
+            credential = try await googleCredential()
+        }
+        _ = try await user.reauthenticate(with: credential)
+        guard auth.currentUser?.uid == user.uid else { throw AccountDeletionError.accountChanged }
+        _ = try await user.getIDTokenResult(forcingRefresh: true)
+    }
+
+    private func googleCredential() async throws -> AuthCredential {
         guard let clientID = FirebaseApp.app()?.options.clientID, !clientID.isEmpty else {
             throw AccountError.googleNotConfigured
         }
@@ -45,7 +76,7 @@ final class AuthenticationService {
             withIDToken: idToken,
             accessToken: result.user.accessToken.tokenString
         )
-        _ = try await auth.signIn(with: credential)
+        return credential
     }
 
     func signOut() throws {

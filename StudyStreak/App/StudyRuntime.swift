@@ -10,6 +10,7 @@ final class StudyRuntime {
     static let shared = StudyRuntime()
     let zones = StudyZoneMonitoringService()
     let notifications = AutomaticSessionNotifications()
+    let reminders = RoutineStudyNotifications()
     let widgets = StudyWidgetPublisher()
     var homeNavigationRequest = UUID()
     private(set) var tracker: StudySessionTracker?
@@ -28,8 +29,12 @@ final class StudyRuntime {
         guard ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] != "1" else { return }
         self.container = container
         self.account = account
+        account.prepareForAccountDeletion = { [weak self] userID in
+            guard let self else { throw AccountError.notConfigured }
+            try await self.prepareForDeletion(userID: userID)
+        }
         notifications.registerActions()
-        guard FirebaseApp.app() != nil else { zones.stop(); widgets.clear(); return }
+        guard FirebaseApp.app() != nil else { zones.stop(); widgets.clear(); reminders.clear(); return }
         account.onStudyUserChanged = { [weak self] userID in self?.activate(userID) }
         if FirebaseApp.app() != nil, let uid = Auth.auth().currentUser?.uid {
             activate(uid)
@@ -45,6 +50,15 @@ final class StudyRuntime {
 
     func activate(_ userID: String?) {
         guard let container else { return }
+        if let userID, AccountDeletionState.isPending(userID) {
+            zones.stop()
+            notifications.cancelAll(ownerID: nil)
+            reminders.clear()
+            widgets.clear()
+            definitions = []
+            tracker = nil
+            return
+        }
         guard let userID else {
             let oldOwner = tracker?.ownerID
             try? tracker?.pause(reason: .signedOut)
@@ -53,6 +67,7 @@ final class StudyRuntime {
             definitions = []
             tracker = nil
             widgets.clear()
+            reminders.clear()
             return
         }
         if tracker?.ownerID != userID {
@@ -62,14 +77,15 @@ final class StudyRuntime {
                 notifications.cancelAll(ownerID: old.ownerID)
             }
             widgets.clear()
+            reminders.clear()
             definitions = []
             automationError = nil
             tracker = StudySessionTracker(container: container, ownerID: userID)
         }
         guard let tracker else { return }
         let ownerID = tracker.ownerID
-        tracker.onProgressChanged = { [weak self] in self?.publishWidgetProgress() }
-        publishWidgetProgress()
+        tracker.onProgressChanged = { [weak self] in self?.studyProgressDidChange() }
+        studyProgressDidChange()
         tracker.onUserFinished = { [weak self] record in
             guard let self, self.tracker?.ownerID == ownerID else { return }
             // Unknown overlapping regions may report Inside after Stop; hold those
@@ -85,6 +101,7 @@ final class StudyRuntime {
             try self.tracker?.pause(reason: .signedOut)
             self.zones.stop()
             self.notifications.cancelAll(ownerID: self.tracker?.ownerID)
+            self.reminders.clear()
         }
         refreshCatalog(requestStates: true)
     }
@@ -117,17 +134,81 @@ final class StudyRuntime {
     }
 
     func refresh() {
+        if let tracker, AccountDeletionState.isPending(tracker.ownerID) { reminders.clear(); return }
         automationError = nil
         tracker?.refreshSettings()
         tracker?.requestSync()
         refreshCatalog(requestStates: true)
+        refreshNotificationSchedule(force: true)
     }
 
     func openHome() { homeNavigationRequest = UUID() }
 
     func publishWidgetProgress(forceReload: Bool = false) {
-        guard let tracker, FirebaseApp.app() != nil, Auth.auth().currentUser?.uid == tracker.ownerID else { return }
+        guard let tracker, !AccountDeletionState.isPending(tracker.ownerID),
+              FirebaseApp.app() != nil, Auth.auth().currentUser?.uid == tracker.ownerID else { return }
         widgets.publish(tracker, forceReload: forceReload)
+    }
+
+    private func studyProgressDidChange() {
+        publishWidgetProgress()
+        refreshNotificationSchedule()
+        if let tracker, !tracker.settings.notificationsEnabled {
+            notifications.cancelAll(ownerID: tracker.ownerID)
+        }
+    }
+
+    func refreshNotificationSchedule(force: Bool = false) {
+        guard let tracker, !tracker.isSuspendedForDeletion, !AccountDeletionState.isPending(tracker.ownerID),
+              FirebaseApp.app() != nil, Auth.auth().currentUser?.uid == tracker.ownerID else {
+            reminders.clear()
+            return
+        }
+        let now = Date.now
+        reminders.update(RoutineNotificationPlan.reminders(
+            ownerID: tracker.ownerID, progress: tracker.widgetSnapshot(at: now), current: tracker.current,
+            settings: tracker.settings, now: now), force: force)
+    }
+
+    func shouldShowReminder(kind: StudyReminderKind, ownerID: String, sessionID: UUID?, focusStartedAt: Date?) -> Bool {
+        guard let tracker, tracker.ownerID == ownerID, !AccountDeletionState.isPending(ownerID),
+              FirebaseApp.app() != nil, Auth.auth().currentUser?.uid == ownerID else { return false }
+        let now = Date.now
+        return RoutineNotificationPlan.shouldPresent(kind: kind, current: tracker.current, sessionID: sessionID,
+            focusStartedAt: focusStartedAt, settings: tracker.settings, today: tracker.metrics(at: now), now: now)
+    }
+
+    func shouldShowAutomaticNotice(ownerID: String, sessionID: UUID?) -> Bool {
+        guard let tracker, tracker.ownerID == ownerID, !AccountDeletionState.isPending(ownerID),
+              FirebaseApp.app() != nil, Auth.auth().currentUser?.uid == ownerID,
+              tracker.settings.notificationsEnabled, let current = tracker.current,
+              current.id == sessionID, current.state == .running, current.needsSubjectConfirmation else { return false }
+        return !homeCanShowConfirmation
+    }
+
+    func handleReminderAction(_ action: String, kind: StudyReminderKind, ownerID: String,
+                              sessionID: UUID?, focusStartedAt: Date?, opensHome: Bool) {
+        guard let tracker, tracker.ownerID == ownerID, !AccountDeletionState.isPending(ownerID),
+              FirebaseApp.app() != nil, Auth.auth().currentUser?.uid == ownerID else { return }
+        if opensHome { openHome(); return }
+        guard action == RoutineStudyNotifications.pauseAction, kind == .breakReminder,
+              shouldShowReminder(kind: kind, ownerID: ownerID, sessionID: sessionID, focusStartedAt: focusStartedAt) else { return }
+        do { try tracker.pause(reason: .user) }
+        catch { automationError = SessionTrackingError.message(for: error) }
+    }
+
+    private func prepareForDeletion(userID: String) async throws {
+        guard FirebaseApp.app() != nil, Auth.auth().currentUser?.uid == userID,
+              tracker == nil || tracker?.ownerID == userID else { throw AccountDeletionError.accountChanged }
+        definitions = []
+        zones.stop()
+        notifications.cancelAll(ownerID: nil)
+        reminders.clear()
+        widgets.clear()
+        if let tracker { try await tracker.suspendForAccountDeletion() }
+        await reminders.cancelAndWait()
+        await notifications.cancelAllAndWait(ownerID: userID)
+        tracker = nil
     }
 
     func canResume(_ session: SessionRecord) -> Bool {
@@ -142,7 +223,8 @@ final class StudyRuntime {
     }
 
     func handleNotificationAction(_ action: String, ownerID: String, sessionID: UUID, subjectName: String?) {
-        guard FirebaseApp.app() != nil, Auth.auth().currentUser?.uid == ownerID else { return }
+        guard !AccountDeletionState.isPending(ownerID), FirebaseApp.app() != nil,
+              Auth.auth().currentUser?.uid == ownerID else { return }
         recoverLocationLaunch()
         guard let tracker, tracker.ownerID == ownerID, let current = tracker.current,
               current.id == sessionID, current.isAutomatic else { return }

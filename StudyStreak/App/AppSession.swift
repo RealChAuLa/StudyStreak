@@ -2,12 +2,14 @@ import FirebaseAuth
 import FirebaseCore
 import Foundation
 import Observation
+import SwiftData
+import OSLog
 
 @MainActor
 @Observable
 final class AppSession {
     enum Phase: Equatable {
-        case loading, signedOut, accountSetup, home, profileError, notConfigured
+        case loading, signedOut, accountSetup, home, profileError, notConfigured, accountDeletion
     }
 
     private(set) var phase: Phase = .loading
@@ -15,6 +17,11 @@ final class AppSession {
     private(set) var uid: String?
     private(set) var profileErrorMessage = ""
     var preferredAuthenticationMode: AuthenticationMode = .signUp
+    private(set) var isDeletingAccount = false
+    private(set) var deletionStatus = ""
+    private(set) var deletionErrorMessage: String?
+    var deletionMethods: [AccountDeletionMethod] { authentication?.deletionMethods ?? [] }
+    var hasPendingDeletion: Bool { uid.map { AccountDeletionState.isPending($0) } ?? false }
 
     @ObservationIgnored private var authentication: AuthenticationService?
     @ObservationIgnored private var profiles: ProfileRepository?
@@ -22,6 +29,7 @@ final class AppSession {
     @ObservationIgnored private var profileTask: Task<Void, Never>?
     @ObservationIgnored var prepareForSignOut: (@MainActor () throws -> Void)?
     @ObservationIgnored var onStudyUserChanged: (@MainActor (String?) -> Void)?
+    @ObservationIgnored var prepareForAccountDeletion: (@MainActor (String) async throws -> Void)?
 
     init() {
         guard FirebaseApp.app() != nil else {
@@ -70,6 +78,60 @@ final class AppSession {
         phase = .signedOut
     }
 
+    func deleteAccount(method: AccountDeletionMethod, password: String, in container: ModelContainer) async throws {
+        guard !isDeletingAccount, let userID = uid, let authentication,
+              let user = authentication.auth.currentUser, user.uid == userID else {
+            throw AccountDeletionError.accountChanged
+        }
+        let oldUsername = profile?.username
+        isDeletingAccount = true
+        deletionErrorMessage = nil
+        defer { isDeletingAccount = false }
+        do {
+            // 1. Verify the Firebase account, then confirm on this device.
+            deletionStatus = "Verifying your account…"
+            try await authentication.reauthenticateForDeletion(method: method, password: password)
+            try await AccountDeletionConfirmation.authenticate()
+            guard authentication.auth.currentUser?.uid == userID else { throw AccountDeletionError.accountChanged }
+            // 2. Remember unfinished deletion and stop session-related background work.
+            AccountDeletionState.begin(userID)
+            profileTask?.cancel()
+            phase = .accountDeletion
+            deletionStatus = "Finishing your study session…"
+            try await prepareForAccountDeletion?(userID)
+            // 3. Remove cloud data and this account’s local study data.
+            deletionStatus = "Removing your account data…"
+            try await AccountDeletionRepository().eraseCloudData(userID: userID, fallbackUsername: oldUsername)
+            guard authentication.auth.currentUser?.uid == userID else { throw AccountDeletionError.accountChanged }
+            deletionStatus = "Removing saved study data…"
+            try AccountDataPurger.erase(userID: userID, in: container)
+            // 4. Delete Firebase Authentication last, while cleanup still has permission.
+            deletionStatus = "Deleting your account…"
+            try await user.delete()
+            AccountDeletionState.complete(userID)
+            if authentication.auth.currentUser == nil || authentication.auth.currentUser?.uid == userID {
+                try? authentication.signOut()
+            }
+            prepareForSignOut = nil
+            profile = nil
+            uid = nil
+            onStudyUserChanged?(nil)
+            preferredAuthenticationMode = .signIn
+            phase = .signedOut
+        } catch {
+            if authentication.auth.currentUser?.uid != userID {
+                isDeletingAccount = false
+                loadProfile(for: authentication.auth.currentUser?.uid)
+            } else if AccountDeletionState.isPending(userID) {
+                deletionErrorMessage = AccountDeletionRepository.message(for: error)
+                phase = .accountDeletion
+            }
+            Logger(subsystem: "realchaula.StudyStreak", category: "AccountDeletion")
+                .error("Account deletion did not finish: \(error.localizedDescription, privacy: .public)")
+            throw error
+        }
+    }
+
     func retryProfile() { loadProfile(for: uid) }
 
     func isUsernameAvailable(_ username: String) async throws -> Bool {
@@ -80,14 +142,14 @@ final class AppSession {
     func reserveUsername(_ username: String) async throws {
         guard let userID = uid, let profiles else { throw AccountError.signedOut }
         let saved = try await profiles.reserveUsername(username, uid: userID)
-        guard uid == userID else { throw AccountError.signedOut }
+        guard uid == userID, !isDeletingAccount, !AccountDeletionState.isPending(userID) else { throw AccountError.signedOut }
         profile = saved
     }
 
     func completeSetup(photoData: Data?) async throws {
         guard let userID = uid, let current = profile, let profiles else { throw AccountError.signedOut }
         try await profiles.completeSetup(uid: userID, photoData: photoData)
-        guard uid == userID else { throw AccountError.signedOut }
+        guard uid == userID, !isDeletingAccount, !AccountDeletionState.isPending(userID) else { throw AccountError.signedOut }
         profile = UserProfile(
             uid: userID, username: current.username, displayName: current.displayName,
             photoBase64: photoData?.base64EncodedString(), setupCompleted: true
@@ -99,7 +161,7 @@ final class AppSession {
         guard uid == userID, let profiles else { throw AccountError.signedOut }
         let saved = try await profiles.updateProfile(uid: userID, username: username,
                                                      displayName: displayName, photoData: photoData)
-        guard uid == userID else { throw AccountError.signedOut }
+        guard uid == userID, !isDeletingAccount, !AccountDeletionState.isPending(userID) else { throw AccountError.signedOut }
         profile = saved
     }
 
@@ -108,21 +170,28 @@ final class AppSession {
         let previous = profile
         guard let saved = try await profiles.fetch(uid: userID, fromServer: true) else { throw AccountError.incompleteProfile }
         try Task.checkCancellation()
-        guard uid == userID else { throw AccountError.signedOut }
+        guard uid == userID, !isDeletingAccount, !AccountDeletionState.isPending(userID) else { throw AccountError.signedOut }
         // A slow refresh must not replace a profile that was just saved locally.
-        guard profile == previous else { return }
+        guard profile == previous, !isDeletingAccount else { return }
         profile = saved
     }
 
     private func loadProfile(for userID: String?) {
+        // Reauthentication and deletion can trigger Auth callbacks while cleanup is in flight.
+        if isDeletingAccount && (userID == nil || userID == uid) { return }
         if uid != userID {
             try? prepareForSignOut?()
             prepareForSignOut = nil
         }
         profileTask?.cancel()
         uid = userID
-        onStudyUserChanged?(userID)
         profile = nil
+        if let userID, AccountDeletionState.isPending(userID) {
+            onStudyUserChanged?(nil)
+            phase = .accountDeletion
+            return
+        }
+        onStudyUserChanged?(userID)
         guard let userID, let profiles else {
             phase = .signedOut
             return

@@ -4,6 +4,7 @@ import UserNotifications
 
 struct NotificationPreferencesView: View {
     @Bindable var preferences: RoutinePreferences
+    @Environment(StudyRuntime.self) private var runtime: StudyRuntime?
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.openURL) private var openURL
     @State private var authorization = NotificationAuthorizationService()
@@ -84,6 +85,14 @@ struct NotificationPreferencesView: View {
 
             reminderTime
             breakFrequency
+            if let message = runtime?.reminders.errorMessage {
+                Section {
+                    Text(message).font(AppTypography.subheadline).foregroundStyle(AppColors.secondary)
+                    Button("Try again") { runtime?.refreshNotificationSchedule(force: true) }
+                        .foregroundStyle(AppColors.primary).frame(minHeight: 44)
+                }
+                .listRowBackground(AppColors.surface)
+            }
         }
         .font(AppTypography.body)
         .foregroundStyle(AppColors.text)
@@ -99,6 +108,9 @@ struct NotificationPreferencesView: View {
         .toolbar(.hidden, for: .tabBar)
         .task {
             await authorization.refresh()
+        }
+        .onChange(of: authorization.authorizationStatus) { _, _ in
+            runtime?.refreshNotificationSchedule(force: true)
         }
         .onChange(of: scenePhase) { _, phase in
             if phase == .active {
@@ -119,17 +131,6 @@ struct NotificationPreferencesView: View {
         }
     }
     
-    private var switches: some View {
-        Section {
-            Toggle("Allow notifications", isOn: Binding(get: { enabled }, set: setEnabled))
-                .disabled(isRequesting || !authorization.hasLoadedSettings)
-            Toggle("Streak alerts", isOn: $preferences.settings.streakAlerts).disabled(!enabled)
-            Toggle("Break reminders", isOn: $preferences.settings.breakReminders).disabled(!enabled)
-        }
-        .listRowInsets(EdgeInsets(top: 16, leading: 16, bottom: 16, trailing: 16))
-        .listRowBackground(AppColors.surface).listRowSeparatorTint(AppColors.border)
-    }
-
     private var reminderTime: some View {
         Section {
             VStack(alignment: .leading, spacing: 12) {

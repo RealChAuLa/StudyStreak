@@ -36,7 +36,9 @@
 	</array>
 	<key>StudyStreakAppGroup</key>
 	<string>$(STUDYSTREAK_APP_GROUP)</string>
-<key>StudyStreakAppGroup</key>
-<string>group.realchaula.StudyStreak</string>
+	<key>StudyStreakAppGroup</key>
+	<string>group.realchaula.StudyStreak</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Use Face ID to confirm permanent deletion of your StudyStreak account.</string>
 </dict>
 </plist>

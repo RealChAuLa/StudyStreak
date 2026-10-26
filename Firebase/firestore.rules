@@ -3,6 +3,14 @@ service cloud.firestore {
   match /databases/{database}/documents {
     function signedIn() { return request.auth != null; }
     function owns(uid) { return signedIn() && request.auth.uid == uid; }
+    function recentAccountVerification() {
+      return signedIn() && request.auth.token.auth_time is int
+        && request.time.toMillis() - request.auth.token.auth_time * 1000 < 300000;
+    }
+    function deletingOwnAccount(uid) {
+      return owns(uid) && recentAccountVerification()
+        && !existsAfter(/databases/$(database)/documents/users/$(uid));
+    }
     function validName(name) {
       return name is string && name.matches('^[a-z0-9._]{3,20}$');
     }
@@ -33,7 +41,12 @@ service cloud.firestore {
 
     match /users/{uid} {
       allow get: if owns(uid);
-      allow list, delete: if false;
+      allow list: if false;
+      allow delete: if owns(uid) && recentAccountVerification()
+        && !existsAfter(/databases/$(database)/documents/usernames/$(resource.data.username))
+        && !existsAfter(/databases/$(database)/documents/friendProfiles/$(uid))
+        && !existsAfter(/databases/$(database)/documents/leaderboardPreferences/$(uid))
+        && !existsAfter(/databases/$(database)/documents/leaderboardStats/$(uid));
       allow create: if owns(uid) && validProfile(uid)
         && request.resource.data.createdAt == request.time
         && request.resource.data.setupCompleted == false;
@@ -55,7 +68,10 @@ service cloud.firestore {
         && request.resource.data.createdAt == request.time
         && getAfter(/databases/$(database)/documents/users/$(request.auth.uid)).data.username == name;
       allow delete: if signedIn() && resource.data.uid == request.auth.uid
-        && getAfter(/databases/$(database)/documents/users/$(request.auth.uid)).data.username != name;
+        && ((!existsAfter(/databases/$(database)/documents/users/$(request.auth.uid))
+              && recentAccountVerification())
+          || (existsAfter(/databases/$(database)/documents/users/$(request.auth.uid))
+              && getAfter(/databases/$(database)/documents/users/$(request.auth.uid)).data.username != name));
     }
 
     // Searchable identity only. Email, settings, zones and session data stay private.
@@ -70,7 +86,7 @@ service cloud.firestore {
         && getAfter(/databases/$(database)/documents/users/$(uid)).data.setupCompleted == true
         && matchingFriendProfile(uid, request.resource.data,
           getAfter(/databases/$(database)/documents/users/$(uid)).data);
-      allow delete: if false;
+      allow delete: if deletingOwnAccount(uid);
     }
 
     match /friendships/{connectionID} {
@@ -120,8 +136,10 @@ service cloud.firestore {
     match /leaderboardPreferences/{uid} {
       // Accepted friends can observe the flag without receiving private study totals.
       allow get: if owns(uid) || (signedIn() && acceptedFriend(uid));
-      allow list, delete: if false;
+      allow list: if false;
+      allow delete: if deletingOwnAccount(uid);
       allow create, update: if owns(uid)
+        && exists(/databases/$(database)/documents/users/$(uid))
         && request.resource.data.keys().hasAll(['uid', 'isVisible', 'updatedAt'])
         && request.resource.data.keys().hasOnly(['uid', 'isVisible', 'updatedAt'])
         && request.resource.data.uid == uid
@@ -153,8 +171,10 @@ service cloud.firestore {
           && data.updatedAt == request.time;
       }
       allow get: if owns(uid) || (signedIn() && acceptedFriend(uid) && sharedWithFriends());
-      allow list, delete: if false;
-      allow create, update: if owns(uid) && validSummary();
+      allow list: if false;
+      allow delete: if deletingOwnAccount(uid);
+      allow create, update: if owns(uid)
+        && exists(/databases/$(database)/documents/users/$(uid)) && validSummary();
     }
 
     match /{document=**} { allow read, write: if false; }

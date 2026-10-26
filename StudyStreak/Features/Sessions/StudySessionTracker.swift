@@ -32,6 +32,7 @@ final class StudySessionTracker {
     private(set) var loadError: String?
     private(set) var syncError: String?
     private(set) var settings: RoutineSettings
+    private(set) var isSuspendedForDeletion = false
     @ObservationIgnored private let container: ModelContainer
     @ObservationIgnored private let context: ModelContext
     @ObservationIgnored private var models: [StudySession] = []
@@ -80,6 +81,20 @@ final class StudySessionTracker {
 
     func metrics(at now: Date) -> HomeStudyMetrics {
         SessionAnalytics.dashboard(records: allRecords, now: now, goal: settings.goal(on:))
+    }
+
+    func totalSeconds(at now: Date) -> TimeInterval {
+        SessionAnalytics.mergedRanges(records: allRecords, now: now).reduce(0) { $0 + $1.duration }
+    }
+
+    func suspendForAccountDeletion() async throws {
+        onProgressChanged = nil
+        try pause(reason: .signedOut)
+        isSuspendedForDeletion = true
+        needsSync = false
+        let pending = syncTask
+        pending?.cancel()
+        await pending?.value
     }
 
     func widgetSnapshot(at now: Date) -> WidgetProgressSnapshot {
@@ -197,7 +212,7 @@ final class StudySessionTracker {
 
     func requestSync() {
         // A new installation with no local completed sessions must not overwrite cloud totals with zero.
-        guard !history.isEmpty, FirebaseApp.app() != nil,
+        guard !isSuspendedForDeletion, !history.isEmpty, FirebaseApp.app() != nil,
               Auth.auth().currentUser?.uid == ownerID else { return }
         needsSync = true
         guard syncTask == nil else { return }
@@ -210,7 +225,7 @@ final class StudySessionTracker {
     private func synchronize() async {
         defer { syncTask = nil }
         let repository = LeaderboardRepository()
-        while needsSync {
+        while needsSync && !isSuspendedForDeletion && !Task.isCancelled {
             needsSync = false
             guard Auth.auth().currentUser?.uid == ownerID else { return }
             let summary = SessionAnalytics.summary(records: history, now: .now, goal: settings.goal(on:))
@@ -220,7 +235,7 @@ final class StudySessionTracker {
                 guard Auth.auth().currentUser?.uid == ownerID else { return }
                 syncError = nil
             } catch {
-                guard Auth.auth().currentUser?.uid == ownerID else { return }
+                guard !isSuspendedForDeletion, !Task.isCancelled, Auth.auth().currentUser?.uid == ownerID else { return }
                 needsSync = true
                 syncError = "Your session is saved. Couldn’t sync study totals."
                 return

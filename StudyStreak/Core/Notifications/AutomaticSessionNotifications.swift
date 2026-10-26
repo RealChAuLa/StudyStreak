@@ -18,7 +18,7 @@ final class AutomaticSessionNotifications {
             textInputButtonTitle: "Save", textInputPlaceholder: "Name of an active subject")
         let category = UNNotificationCategory(identifier: Self.category, actions: [confirm, change],
                                                intentIdentifiers: [], options: [])
-        center.setNotificationCategories([category])
+        center.setNotificationCategories(Set([category]).union(RoutineStudyNotifications.categories))
     }
 
     func postStarted(_ session: SessionRecord, ownerID: String) {
@@ -66,6 +66,18 @@ final class AutomaticSessionNotifications {
             }.map(\.request.identifier)
             center.removeDeliveredNotifications(withIdentifiers: ids)
         }
+    }
+
+    func cancelAllAndWait(ownerID: String) async {
+        let pending = await center.pendingNotificationRequests()
+        center.removePendingNotificationRequests(withIdentifiers: pending.filter {
+            $0.identifier.hasPrefix("StudyStreak.automatic.") && $0.content.userInfo["ownerID"] as? String == ownerID
+        }.map(\.identifier))
+        let delivered = await center.deliveredNotifications()
+        center.removeDeliveredNotifications(withIdentifiers: delivered.filter {
+            $0.request.identifier.hasPrefix("StudyStreak.automatic.")
+                && $0.request.content.userInfo["ownerID"] as? String == ownerID
+        }.map(\.request.identifier))
     }
 
     private func identifier(_ sessionID: UUID) -> String { "StudyStreak.automatic.\(sessionID.uuidString)" }

@@ -60,6 +60,10 @@ struct StudyStreakApp: App {
             .onReceive(NotificationCenter.default.publisher(for: UIApplication.backgroundRefreshStatusDidChangeNotification)) { _ in
                 runtime.refresh()
             }
+            .onReceive(NotificationCenter.default.publisher(for: UIApplication.significantTimeChangeNotification)) { _ in
+                runtime.refresh()
+                runtime.publishWidgetProgress(forceReload: true)
+            }
             .onReceive(NotificationCenter.default.publisher(for: UserDefaults.didChangeNotification)) { _ in
                 runtime.tracker?.refreshSettings()
             }
