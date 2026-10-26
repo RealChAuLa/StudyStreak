@@ -1,3 +1,4 @@
+import AppIntents
 import FirebaseCore
 import GoogleSignIn
 import SwiftData
@@ -28,6 +29,7 @@ struct StudyStreakApp: App {
         if let container = persistence.container {
             StudyRuntime.shared.configure(container: container, account: session)
         }
+        StudyShortcuts.updateAppShortcutParameters()
     }
 
     var body: some Scene {

@@ -144,6 +144,38 @@ final class StudyRuntime {
 
     func openHome() { homeNavigationRequest = UUID() }
 
+    // Siri uses the app's existing tracker and store, never a second session engine.
+    func trackerForShortcut() throws -> StudySessionTracker {
+        guard container != nil, let account else { throw StudyShortcutError.studyDataUnavailable }
+        guard FirebaseApp.app() != nil, let userID = Auth.auth().currentUser?.uid else {
+            throw StudyShortcutError.signInRequired
+        }
+        guard !account.isDeletingAccount, !AccountDeletionState.isPending(userID) else {
+            throw StudyShortcutError.accountDeletionInProgress
+        }
+        guard account.phase != .accountSetup else { throw StudyShortcutError.studyDataUnavailable }
+        if tracker?.ownerID != userID { activate(userID) }
+        guard let tracker, tracker.ownerID == userID,
+              tracker.loadError == nil, !tracker.isSuspendedForDeletion else {
+            throw StudyShortcutError.studyDataUnavailable
+        }
+        return tracker
+    }
+
+    func activeSubjectsForShortcut() throws -> [SessionSubject] {
+        let tracker = try trackerForShortcut()
+        guard let container else { throw StudyShortcutError.studyDataUnavailable }
+        let ownerID = tracker.ownerID
+        let context = ModelContext(container)
+        let subjects = try context.fetch(FetchDescriptor<StudySubject>(
+            predicate: #Predicate { $0.ownerID == ownerID && $0.isActive },
+            sortBy: [SortDescriptor(\.sortIndex), SortDescriptor(\.name)]
+        ))
+        return subjects.map {
+            SessionSubject(id: $0.id, name: $0.name, colorID: $0.colorID, iconID: $0.iconID)
+        }
+    }
+
     func publishWidgetProgress(forceReload: Bool = false) {
         guard let tracker, !AccountDeletionState.isPending(tracker.ownerID),
               FirebaseApp.app() != nil, Auth.auth().currentUser?.uid == tracker.ownerID else { return }
