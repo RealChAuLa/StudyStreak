@@ -12,6 +12,7 @@ final class StudyRuntime {
     let notifications = AutomaticSessionNotifications()
     let reminders = RoutineStudyNotifications()
     let widgets = StudyWidgetPublisher()
+    let watch = PhoneWatchSessionService()
     var homeNavigationRequest = UUID()
     private(set) var tracker: StudySessionTracker?
     private(set) var automationError: String?
@@ -29,12 +30,13 @@ final class StudyRuntime {
         guard ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] != "1" else { return }
         self.container = container
         self.account = account
+        watch.start(with: self)
         account.prepareForAccountDeletion = { [weak self] userID in
             guard let self else { throw AccountError.notConfigured }
             try await self.prepareForDeletion(userID: userID)
         }
         notifications.registerActions()
-        guard FirebaseApp.app() != nil else { zones.stop(); widgets.clear(); reminders.clear(); return }
+        guard FirebaseApp.app() != nil else { zones.stop(); widgets.clear(); reminders.clear(); watch.clear(); return }
         account.onStudyUserChanged = { [weak self] userID in self?.activate(userID) }
         if FirebaseApp.app() != nil, let uid = Auth.auth().currentUser?.uid {
             activate(uid)
@@ -50,6 +52,7 @@ final class StudyRuntime {
 
     func activate(_ userID: String?) {
         guard let container else { return }
+        defer { watch.refresh() }
         if let userID, AccountDeletionState.isPending(userID) {
             zones.stop()
             notifications.cancelAll(ownerID: nil)
@@ -108,6 +111,7 @@ final class StudyRuntime {
 
     func refreshCatalog(requestStates: Bool = false) {
         guard let container, let tracker else { return }
+        defer { watch.refresh() }
         do {
             let context = ModelContext(container)
             let ownerID = tracker.ownerID
@@ -183,6 +187,7 @@ final class StudyRuntime {
     }
 
     private func studyProgressDidChange() {
+        watch.refresh()
         publishWidgetProgress()
         refreshNotificationSchedule()
         if let tracker, !tracker.settings.notificationsEnabled {
@@ -237,6 +242,7 @@ final class StudyRuntime {
         notifications.cancelAll(ownerID: nil)
         reminders.clear()
         widgets.clear()
+        watch.clear()
         if let tracker { try await tracker.suspendForAccountDeletion() }
         await reminders.cancelAndWait()
         await notifications.cancelAllAndWait(ownerID: userID)

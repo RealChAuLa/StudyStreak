@@ -19,6 +19,12 @@
 		D7C6B494308F1DDB008802D0 /* StudyStreakWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D7C6B47E308F1DD8008802D0 /* StudyStreakWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		D7C6B4A1308F1F01008802D0 /* StudyProgress.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7C6B475308F1CCE008802D0 /* StudyProgress.swift */; };
 		D7C6B4A2308F1F0D008802D0 /* WidgetProgress.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7C6B476308F1CCE008802D0 /* WidgetProgress.swift */; };
+		9B98B67DC8AB481647C9003F /* StudyStreakWatch.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = AF34FC13122A0E289671780F /* StudyStreakWatch.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		C34F84AFFDF1A264F2E128EF /* WatchSessionMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = C81AFE40BB21CAA22E17FA60 /* WatchSessionMessage.swift */; };
+		47E65EE1841B35AAC485D30A /* WatchSessionMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = C81AFE40BB21CAA22E17FA60 /* WatchSessionMessage.swift */; };
+		150CE9751AD1FE5148A1A046 /* AppColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44FCEFC8469577FF9BCD7F96 /* AppColors.swift */; };
+		A7FB4EFB85CA425B958EC4BA /* GoogleSans-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D1EE15E2B1317526726ABFA4 /* GoogleSans-Regular.ttf */; };
+		93C3BBC5D1BCDD911EE10DFC /* GoogleSans-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 541FC394F9C525720E5CB3EF /* GoogleSans-SemiBold.ttf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -28,6 +34,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = D7C6B47D308F1DD8008802D0;
 			remoteInfo = StudyStreakWidgetExtension;
+		};
+		EF6EC5AC29B7FDB10F239656 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D7E53CCF30821A2A0073B792 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D7C32A6A6196005ABC39F1D5;
+			remoteInfo = StudyStreakWatch;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -43,6 +56,17 @@
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		017A2AB98460C86330FFAF8D /* Embed Watch Content */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
+			dstSubfolderSpec = 16;
+			files = (
+				9B98B67DC8AB481647C9003F /* StudyStreakWatch.app in Embed Watch Content */,
+			);
+			name = "Embed Watch Content";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
@@ -53,6 +77,11 @@
 		D7C6B480308F1DD8008802D0 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		D7C6B482308F1DD8008802D0 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		D7E53CD730821A2A0073B792 /* StudyStreak.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = StudyStreak.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AF34FC13122A0E289671780F /* StudyStreakWatch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = StudyStreakWatch.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		C81AFE40BB21CAA22E17FA60 /* WatchSessionMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchSessionMessage.swift; sourceTree = "<group>"; };
+		44FCEFC8469577FF9BCD7F96 /* AppColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppColors.swift; path = ../StudyStreak/DesignSystem/AppColors.swift; sourceTree = "<group>"; };
+		D1EE15E2B1317526726ABFA4 /* GoogleSans-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "GoogleSans-Regular.ttf"; path = "../StudyStreak/Resources/Fonts/GoogleSans-Regular.ttf"; sourceTree = "<group>"; };
+		541FC394F9C525720E5CB3EF /* GoogleSans-SemiBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "GoogleSans-SemiBold.ttf"; path = "../StudyStreak/Resources/Fonts/GoogleSans-SemiBold.ttf"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -72,6 +101,13 @@
 			);
 			target = D7C6B47D308F1DD8008802D0 /* StudyStreakWidgetExtension */;
 		};
+		5835F59454BEB7296E764775 /* Exceptions for StudyStreakWatch Info.plist */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = D7C32A6A6196005ABC39F1D5 /* StudyStreakWatch */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -89,6 +125,14 @@
 				D7C6B4A4308F1FBE008802D0 /* Exceptions for "StudyStreak" folder in "StudyStreakWidgetExtension" target */,
 			);
 			path = StudyStreak;
+			sourceTree = "<group>";
+		};
+		58560D9B4B00A10AD79EC163 /* StudyStreakWatch */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				5835F59454BEB7296E764775 /* Exceptions for StudyStreakWatch Info.plist */,
+			);
+			path = StudyStreakWatch;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -114,12 +158,24 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		76E865EAE09E91049D874C9A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		D7C6B477308F1CCE008802D0 /* Shared */ = {
 			isa = PBXGroup;
 			children = (
+				C81AFE40BB21CAA22E17FA60 /* WatchSessionMessage.swift */,
+				44FCEFC8469577FF9BCD7F96 /* AppColors.swift */,
+				D1EE15E2B1317526726ABFA4 /* GoogleSans-Regular.ttf */,
+				541FC394F9C525720E5CB3EF /* GoogleSans-SemiBold.ttf */,
+
 				D7C6B475308F1CCE008802D0 /* StudyProgress.swift */,
 				D7C6B476308F1CCE008802D0 /* WidgetProgress.swift */,
 			);
@@ -139,6 +195,7 @@
 		D7E53CCE30821A2A0073B792 = {
 			isa = PBXGroup;
 			children = (
+				58560D9B4B00A10AD79EC163 /* StudyStreakWatch */,
 				D7C6B477308F1CCE008802D0 /* Shared */,
 				A18E10100000000000000003 /* GoogleService-Info.plist */,
 				D7E53CD930821A2A0073B792 /* StudyStreak */,
@@ -151,6 +208,7 @@
 		D7E53CD830821A2A0073B792 /* Products */ = {
 			isa = PBXGroup;
 			children = (
+				AF34FC13122A0E289671780F /* StudyStreakWatch.app */,
 				D7E53CD730821A2A0073B792 /* StudyStreak.app */,
 				D7C6B47E308F1DD8008802D0 /* StudyStreakWidgetExtension.appex */,
 			);
@@ -190,10 +248,12 @@
 				D7E53CD430821A2A0073B792 /* Frameworks */,
 				D7E53CD530821A2A0073B792 /* Resources */,
 				D7C6B499308F1DDB008802D0 /* Embed Foundation Extensions */,
+				017A2AB98460C86330FFAF8D /* Embed Watch Content */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				4455968D080B8ABEB2468400 /* PBXTargetDependency */,
 				D7C6B493308F1DDB008802D0 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
@@ -210,6 +270,25 @@
 			productReference = D7E53CD730821A2A0073B792 /* StudyStreak.app */;
 			productType = "com.apple.product-type.application";
 		};
+		D7C32A6A6196005ABC39F1D5 /* StudyStreakWatch */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E295D63757416A3680821B48 /* Build configuration list for StudyStreakWatch */;
+			buildPhases = (
+				A33F18205F5DEE7E9EAD45BC /* Sources */,
+				76E865EAE09E91049D874C9A /* Frameworks */,
+				3987AFEA9118F601105CAD38 /* Resources */,
+			);
+			buildRules = ();
+			dependencies = ();
+			fileSystemSynchronizedGroups = (
+				58560D9B4B00A10AD79EC163 /* StudyStreakWatch */,
+			);
+			name = StudyStreakWatch;
+			packageProductDependencies = ();
+			productName = StudyStreakWatch;
+			productReference = AF34FC13122A0E289671780F /* StudyStreakWatch.app */;
+			productType = "com.apple.product-type.application";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -220,6 +299,9 @@
 				LastSwiftUpdateCheck = 2620;
 				LastUpgradeCheck = 2620;
 				TargetAttributes = {
+					D7C32A6A6196005ABC39F1D5 = {
+						CreatedOnToolsVersion = 26.2;
+					};
 					D7C6B47D308F1DD8008802D0 = {
 						CreatedOnToolsVersion = 26.2;
 					};
@@ -246,6 +328,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
+				D7C32A6A6196005ABC39F1D5 /* StudyStreakWatch */,
 				D7E53CD630821A2A0073B792 /* StudyStreak */,
 				D7C6B47D308F1DD8008802D0 /* StudyStreakWidgetExtension */,
 			);
@@ -268,6 +351,15 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		3987AFEA9118F601105CAD38 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A7FB4EFB85CA425B958EC4BA /* GoogleSans-Regular.ttf in Resources */,
+				93C3BBC5D1BCDD911EE10DFC /* GoogleSans-SemiBold.ttf in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -284,8 +376,18 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C34F84AFFDF1A264F2E128EF /* WatchSessionMessage.swift in Sources */,
 				D7C6B478308F1CCE008802D0 /* StudyProgress.swift in Sources */,
 				D7C6B479308F1CCE008802D0 /* WidgetProgress.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A33F18205F5DEE7E9EAD45BC /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				47E65EE1841B35AAC485D30A /* WatchSessionMessage.swift in Sources */,
+				150CE9751AD1FE5148A1A046 /* AppColors.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -296,6 +398,11 @@
 			isa = PBXTargetDependency;
 			target = D7C6B47D308F1DD8008802D0 /* StudyStreakWidgetExtension */;
 			targetProxy = D7C6B492308F1DDB008802D0 /* PBXContainerItemProxy */;
+		};
+		4455968D080B8ABEB2468400 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D7C32A6A6196005ABC39F1D5 /* StudyStreakWatch */;
+			targetProxy = EF6EC5AC29B7FDB10F239656 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -567,6 +674,58 @@
 			};
 			name = Release;
 		};
+		5564712283F19BD82A0E7F55 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = Q7JFF5XKUH;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = StudyStreakWatch/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks", );
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = realchaula.StudyStreak.watchkitapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "watchos watchsimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+			};
+			name = Debug;
+		};
+		3D9388CFDF2FF0BA9FA04D0B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = Q7JFF5XKUH;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = StudyStreakWatch/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks", );
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = realchaula.StudyStreak.watchkitapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "watchos watchsimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -593,6 +752,15 @@
 			buildConfigurations = (
 				D7E53CE530821A2D0073B792 /* Debug */,
 				D7E53CE630821A2D0073B792 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		E295D63757416A3680821B48 /* Build configuration list for StudyStreakWatch */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5564712283F19BD82A0E7F55 /* Debug */,
+				3D9388CFDF2FF0BA9FA04D0B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
