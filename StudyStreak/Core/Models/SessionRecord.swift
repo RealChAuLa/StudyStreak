@@ -10,14 +10,14 @@ nonisolated enum SessionPauseReason: String, Codable, Sendable {
 
 nonisolated enum SessionSource: String, Sendable { case manual, automatic }
 
-nonisolated struct SessionSubject: Equatable, Sendable {
+nonisolated struct SessionSubject: Codable, Equatable, Sendable {
     let id: UUID
     let name: String
     let colorID: String
     let iconID: String
 }
 
-nonisolated struct SessionSpan: Equatable, Sendable {
+nonisolated struct SessionSpan: Codable, Equatable, Sendable {
     let startedAt: Date
     let endedAt: Date?
     let subject: SessionSubject
@@ -29,7 +29,7 @@ nonisolated struct SessionSpan: Equatable, Sendable {
     }
 }
 
-nonisolated struct SessionRecord: Identifiable, Equatable, Sendable {
+nonisolated struct SessionRecord: Codable, Identifiable, Equatable, Sendable {
     let id: UUID
     let startedAt: Date
     let endedAt: Date?

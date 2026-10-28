@@ -58,7 +58,7 @@ nonisolated final class LeaderboardRepository: @unchecked Sendable {
 
     // The session tracker supplies completed totals; views never increment them.
     // Replacing an aggregate is idempotent: retrying cannot count a session twice.
-    func publish(_ summary: StudySummary, userID: String) async throws {
+    func publish(_ summary: StudySummary, userID: String, replacingHistory: Bool = false) async throws {
         guard summary.isValid else { throw LeaderboardError.invalidSummary }
         let reference = database.collection("leaderboardStats").document(userID)
         // Transactions fail offline. The session remains saved locally and can retry
@@ -66,7 +66,7 @@ nonisolated final class LeaderboardRepository: @unchecked Sendable {
         _ = try await database.runTransaction { transaction, errorPointer -> Any? in
             do {
                 let existing = try transaction.getDocument(reference)
-                if let data = existing.data(), let total = data["totalSeconds"] as? Int {
+                if !replacingHistory, let data = existing.data(), let total = data["totalSeconds"] as? Int {
                     // Sessions are append-only here. A delayed writer must not lower a newer total.
                     if total > summary.totalSeconds { return nil }
                     if total == summary.totalSeconds, let week = data["weekID"] as? String,

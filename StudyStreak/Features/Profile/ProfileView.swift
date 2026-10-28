@@ -66,15 +66,13 @@ private struct ProfileContent: View {
     var onEditProfile: () -> Void = { }
     var onDeleteAccount: (() -> Void)? = nil
     @Environment(\.studyUserID) private var ownerID
+    @State private var routineRevision = UUID()
     @AppStorage(AppAppearance.storageKey) private var appearance = AppAppearance.system.rawValue
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 identityCard
-
-                sectionTitle("Your routine")
-                ProfileRoutineSection(ownerID: ownerID).id(ownerID)
 
                 sectionTitle("Your study world")
                 VStack(alignment: .leading, spacing: 0) {
@@ -96,6 +94,9 @@ private struct ProfileContent: View {
                 }
                 .profileCard()
 
+                sectionTitle("Your routine")
+                ProfileRoutineSection(ownerID: ownerID).id("\(ownerID)-\(routineRevision)")
+
                 sectionTitle("Preferences")
                 VStack(spacing: 0) {
                     NavigationLink {
@@ -112,6 +113,10 @@ private struct ProfileContent: View {
                     .disabled(profile == nil)
                 }
                 .profileCard()
+
+                sectionTitle("Your data")
+                ProfileBackupSection(ownerID: ownerID) { routineRevision = UUID() }
+                    .id(ownerID)
 
                 Button(role: .destructive, action: onSignOut) {
                     Text("Sign Out")

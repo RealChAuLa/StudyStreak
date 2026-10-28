@@ -146,6 +146,28 @@ final class StudyRuntime {
         refreshNotificationSchedule(force: true)
     }
 
+    func exportBackup(ownerID: String) throws -> StudyBackup {
+        let tracker = try trackerForShortcut()
+        guard tracker.ownerID == ownerID, let container else { throw StudyBackupError.wrongAccount }
+        tracker.reload()
+        guard tracker.loadError == nil else { throw SessionTrackingError.unreadableStore }
+        return try StudyBackupService.export(container: container, tracker: tracker)
+    }
+
+    func restoreBackup(_ backup: StudyBackup, ownerID: String) throws {
+        let tracker = try trackerForShortcut()
+        guard tracker.ownerID == ownerID, let container else { throw StudyBackupError.wrongAccount }
+        guard tracker.current == nil else { throw StudyBackupError.activeSession }
+        try StudyBackupService.restore(backup, ownerID: ownerID, container: container)
+        zones.stop()
+        definitions = []
+        notifications.cancelAll(ownerID: ownerID)
+        tracker.reloadAfterImport()
+        refreshCatalog(requestStates: true)
+        publishWidgetProgress(forceReload: true)
+        refreshNotificationSchedule(force: true)
+    }
+
     func openHome() { homeNavigationRequest = UUID() }
 
     // Siri uses the app's existing tracker and store, never a second session engine.

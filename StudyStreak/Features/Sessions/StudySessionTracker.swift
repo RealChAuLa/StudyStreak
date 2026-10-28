@@ -34,7 +34,7 @@ final class StudySessionTracker {
     private(set) var settings: RoutineSettings
     private(set) var isSuspendedForDeletion = false
     @ObservationIgnored private let container: ModelContainer
-    @ObservationIgnored private let context: ModelContext
+    @ObservationIgnored private var context: ModelContext
     @ObservationIgnored private var models: [StudySession] = []
     @ObservationIgnored private var syncTask: Task<Void, Never>?
     @ObservationIgnored private var needsSync = false
@@ -72,6 +72,15 @@ final class StudySessionTracker {
             loadError = SessionTrackingError.unreadableStore.localizedDescription
         }
         onProgressChanged?()
+    }
+
+    func reloadAfterImport() {
+        // Discard cached SwiftData objects so restored records are read afresh.
+        context = ModelContext(container)
+        context.autosaveEnabled = false
+        settings = RoutinePreferences(ownerID: ownerID).settings
+        reload()
+        requestSync(replacingHistory: true)
     }
 
     func refreshSettings() {
@@ -210,9 +219,15 @@ final class StudySessionTracker {
         try commit()
     }
 
-    func requestSync() {
-        // A new installation with no local completed sessions must not overwrite cloud totals with zero.
-        guard !isSuspendedForDeletion, !history.isEmpty, FirebaseApp.app() != nil,
+    private var replacementKey: String { "leaderboardHistoryReplacement.\(ownerID)" }
+
+    func requestSync(replacingHistory: Bool = false) {
+        if replacingHistory {
+            UserDefaults.standard.set(UUID().uuidString, forKey: replacementKey)
+        }
+        // An explicitly restored backup may legitimately have fewer sessions, or none.
+        let hasReplacement = UserDefaults.standard.string(forKey: replacementKey) != nil
+        guard !isSuspendedForDeletion, loadError == nil, (!history.isEmpty || hasReplacement), FirebaseApp.app() != nil,
               Auth.auth().currentUser?.uid == ownerID else { return }
         needsSync = true
         guard syncTask == nil else { return }
@@ -229,10 +244,14 @@ final class StudySessionTracker {
             needsSync = false
             guard Auth.auth().currentUser?.uid == ownerID else { return }
             let summary = SessionAnalytics.summary(records: history, now: .now, goal: settings.goal(on:))
+            let replacement = UserDefaults.standard.string(forKey: replacementKey)
             do {
                 // Serialize replacement writes so an older aggregate cannot finish after a newer one.
-                try await repository.publish(summary, userID: ownerID)
+                try await repository.publish(summary, userID: ownerID, replacingHistory: replacement != nil)
                 guard Auth.auth().currentUser?.uid == ownerID else { return }
+                if let replacement, UserDefaults.standard.string(forKey: replacementKey) == replacement {
+                    UserDefaults.standard.removeObject(forKey: replacementKey)
+                }
                 syncError = nil
             } catch {
                 guard !isSuspendedForDeletion, !Task.isCancelled, Auth.auth().currentUser?.uid == ownerID else { return }

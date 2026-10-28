@@ -20,7 +20,7 @@ enum AccountDataPurger {
         } catch { context.rollback(); throw error }
 
         for key in ["routinePreferences.\(userID)", "automaticZones.enabled.\(userID)",
-                    "automaticZones.suppressed.\(userID)"] {
+                    "automaticZones.suppressed.\(userID)", "leaderboardHistoryReplacement.\(userID)"] {
             UserDefaults.standard.removeObject(forKey: key)
         }
     }
